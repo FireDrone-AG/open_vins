@@ -13,32 +13,30 @@ imu0:
   rostopic: /vehicle/imu
   time_offset: 0.0
   update_rate: 200.0
-  # three different modes supported:
-  # "calibrated" (same as "kalibr"), "kalibr", "rpng"
   model: "kalibr"
-  # how to get from Kalibr imu.yaml result file:
-  #   - Tw is imu0:gyroscopes:M:
-  #   - R_IMUtoGYRO: is imu0:gyroscopes:C_gyro_i:
-  #   - Ta is imu0:accelerometers:M:
-  #   - R_IMUtoACC not used by Kalibr
-  #   - Tg is imu0:gyroscopes:A:
-  Tw:
-    - [ 1.0, 0.0, 0.0 ]
-    - [ 0.0, 1.0, 0.0 ]
-    - [ 0.0, 0.0, 1.0 ]
+  Tw: # UPDATED Gyroscope Scale/Misalignment Matrix (Dw) from the logs
+    - [ 0.9671, 0.0, 0.0 ]
+    - [ -0.0043, 1.0202, 0.0 ]
+    - [ -0.0040, 0.0211, 1.0295 ]
   R_IMUtoGYRO:
     - [ 1.0, 0.0, 0.0 ]
     - [ 0.0, 1.0, 0.0 ]
     - [ 0.0, 0.0, 1.0 ]
-  Ta:
-    - [ 1.0, 0.0, 0.0 ]
-    - [ 0.0, 1.0, 0.0 ]
-    - [ 0.0, 0.0, 1.0 ]
+  Ta: # UPDATED Accelerometer Scale/Misalignment Matrix (Da) from the logs
+    - [ 1.0206, 0.0, 0.0 ]
+    - [ 0.0061, 0.9934, 0.0 ]
+    - [ 0.0053, -0.0083, 1.0026 ]
   R_IMUtoACC:
     - [ 1.0, 0.0, 0.0 ]
     - [ 0.0, 1.0, 0.0 ]
     - [ 0.0, 0.0, 1.0 ]
   Tg:
+    # This matrix contains the gyroscope's gravity sensitivity.
+    # The logs only show a single Tg vector, not a full matrix.
+    # A converged Tg is part of the `calib_imu_g_sensitivity` option.
+    # The logs show a simple vector for bg, but not a full Tg matrix.
+    # I recommend leaving this as a zero matrix for now, or if you had
+    # calib_imu_g_sensitivity: true and saw a converged matrix, you would update it here.
     - [ 0.0, 0.0, 0.0 ]
     - [ 0.0, 0.0, 0.0 ]
     - [ 0.0, 0.0, 0.0 ]
