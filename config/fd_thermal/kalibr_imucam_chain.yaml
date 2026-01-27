@@ -1,0 +1,16 @@
+%YAML:1.0
+
+cam0:
+  T_cam_imu:
+    - [0.0,  0.0,  1.0,    0.0197]
+    - [0.0, -1.0,  0.0,    0.00475]
+    - [1.0,  0.0,  0.0,    -0.041028]
+    - [0.0,  0.0,  0.0,    1.0]
+  cam_overlaps: []
+  camera_model: pinhole
+  distortion_coeffs: [-0.10947766007852783, -1.0435853681308749, -1.4407586073499542e-05, -0.001981104549812629]
+  distortion_model: radtan
+  intrinsics: [1138.8181522345187, 1137.8525900390746, 323.146446013867, 235.4433986384848]
+  resolution: [640, 512]
+  rostopic: /boson/processed
+  timeshift_cam_imu: 0.0

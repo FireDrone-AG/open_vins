@@ -1,0 +1,20 @@
+%YAML:1.0
+
+cam0:
+  T_cam_imu:
+    - [0.0,  0.0,  1.0,    0.037]
+    - [0.0, -1.0,  0.0,    0.0]
+    - [1.0,  0.0,  0.0,    0.0006]
+    - [0.0,  0.0,  0.0,    1.0]
+
+  cam_overlaps: []
+  camera_model: pinhole   # (if you want fisheye here, say so—this is VOXL/OpenVINS-dependent)
+  distortion_coeffs: [0.09210189889743736, 0.001655848489889433, 0.006977963346423741, -0.004389392126407715]
+  distortion_model: fisheye
+
+  intrinsics: [441.1445064391674, 441.62358824930254, 639.2152093388159, 376.2134267099102]
+
+  resolution: [1280, 800]
+  rostopic: /tracking_front
+  timeshift_cam_imu: -0.005
+

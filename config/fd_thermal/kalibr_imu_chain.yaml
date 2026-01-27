@@ -1,0 +1,42 @@
+%YAML:1.0
+
+imu0:
+  T_i_b:
+    - [1.0, 0.0, 0.0, 0.0]
+    - [0.0, 1.0, 0.0, 0.0]
+    - [0.0, 0.0, 1.0, 0.0]
+    - [0.0, 0.0, 0.0, 1.0]
+  accelerometer_noise_density: 0.0032276688676474326
+  accelerometer_random_walk: 0.00010977868118582138
+  gyroscope_noise_density: 0.00018286023072547298
+  gyroscope_random_walk: 6.458898117689439e-06
+  rostopic: /imu_apps
+  time_offset: 0.0
+  update_rate: 186
+  model: "kalibr"
+  Tw: # UPDATED Gyroscope Scale/Misalignment Matrix (Dw) from the logs
+    - [ 0.9659, 0.0457, -0.0975 ]
+    - [ 0.0000, 0.9598, -0.0577 ]
+    - [ 0.0000, 0.0000, 0.7679 ]
+  R_IMUtoGYRO:
+    - [ 0.9620, -0.2709, -0.0435 ]
+    - [ 0.2713, 0.9622, -0.0210 ]
+    - [ 0.0409, 0.0247, 0.9989 ]
+  Ta: # UPDATED Accelerometer Scale/Misalignment Matrix (Da) from the logs
+    - [ 0.8030, -0.0308, -0.4005 ]
+    - [ 0.0000, 1.0046, -0.1404 ]
+    - [ 0.0000, 0.0000, 1.0288 ]
+  R_IMUtoACC:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  Tg:
+    # This matrix contains the gyroscope's gravity sensitivity.
+    # The logs only show a single Tg vector, not a full matrix.
+    # A converged Tg is part of the `calib_imu_g_sensitivity` option.
+    # The logs show a simple vector for bg, but not a full Tg matrix.
+    # I recommend leaving this as a zero matrix for now, or if you had
+    # calib_imu_g_sensitivity: true and saw a converged matrix, you would update it here.
+    - [ 0.0, 0.0, 0.0 ]
+    - [ 0.0, 0.0, 0.0 ]
+    - [ 0.0, 0.0, 0.0 ]
