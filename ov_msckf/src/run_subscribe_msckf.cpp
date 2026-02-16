@@ -62,8 +62,11 @@ int main(int argc, char **argv) {
   rclcpp::NodeOptions options;
   options.allow_undeclared_parameters(true);
   options.automatically_declare_parameters_from_overrides(true);
-  auto node = std::make_shared<rclcpp::Node>("run_subscribe_msckf", options);
-  node->get_parameter<std::string>("config_path", config_path);
+  auto node = std::make_shared<rclcpp::Node>("run_subscribe_msckf", options); //creates a shared pointer that points to an object of 
+                                                                              //type rclcpp::Node
+  node->get_parameter<std::string>("config_path", config_path);               //"->" pointer member access operator on cpp
+                                                                              // call member fct get_parameter() on the rclcpp::Node
+                                                                              // object that node points to 
 #endif
 
   // Load the config
@@ -71,7 +74,10 @@ int main(int argc, char **argv) {
 #if ROS_AVAILABLE == 1
   parser->set_node_handler(nh);
 #elif ROS_AVAILABLE == 2
-  parser->set_node(node);
+  parser->set_node(node); //set_node() is a member fct. of the class ov_Core::YamlParser,
+                          //I.E. it is called on a member
+                          //of the object that parser points to.
+                          // SIMPLY PASSING node AS AN ARGUMENT HERE
 #endif
 
   // Verbosity
