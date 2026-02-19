@@ -37,6 +37,8 @@
 #include "print.h"
 #include "quat_ops.h"
 
+#include <math.h>
+
 namespace ov_core {
 
 /**

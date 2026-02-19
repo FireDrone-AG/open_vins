@@ -35,6 +35,8 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
 
+#include <math.h>
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
@@ -101,9 +103,14 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     // For this camera, create the vector of camera poses
     std::unordered_map<double, FeatureInitializer::ClonePose> clones_cami;
     for (const auto &clone_imu : state->_clones_IMU) {
+       
+      // Time-invariant extrinsics-rotation matrix
+      Eigen::Matrix<double, 3, 3> R_CitoCrot {{sqrt(3)/2, 0, 0.5},
+                                                 {0, 1, 0},
+                                                 {-0.5, 0, sqrt(3)/2}};
 
       // Get current camera pose
-      Eigen::Matrix<double, 3, 3> R_GtoCi = clone_calib.second->Rot() * clone_imu.second->Rot();
+      Eigen::Matrix<double, 3, 3> R_GtoCi = R_CitoCrot * clone_calib.second->Rot() * clone_imu.second->Rot();
       Eigen::Matrix<double, 3, 1> p_CioinG = clone_imu.second->pos() - R_GtoCi.transpose() * clone_calib.second->pos();
 
       // Append to our map

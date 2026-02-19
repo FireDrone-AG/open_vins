@@ -106,8 +106,9 @@ State::State(StateOptions &options) {
   for (int i = 0; i < _options.num_cameras; i++) {
 
     // Allocate extrinsic transform
-    auto pose = std::make_shared<PoseJPL>();
-
+    auto pose = std::make_shared<PoseJPL>();    // PoseJPL: OpenVins internal representation of a 6-DOF pose state
+                                                // "just a mathematical object/rigid body transform"
+                                                
     // Allocate intrinsics for this camera
     auto intrin = std::make_shared<Vec>(8);
 

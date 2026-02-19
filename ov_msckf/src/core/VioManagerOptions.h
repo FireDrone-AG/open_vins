@@ -276,6 +276,7 @@ struct VioManagerOptions {
           camera_intrinsics.insert({i, std::make_shared<ov_core::CamRadtan>(matrix_wh.at(0), matrix_wh.at(1))});
           camera_intrinsics.at(i)->set_value(cam_calib);
         }
+        
         camera_extrinsics.insert({i, cam_eigen});
       }
       parser->parse_config("use_mask", use_mask);
