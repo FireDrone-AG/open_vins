@@ -141,7 +141,7 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
 
     // Remove the feature if not a success
     if (!success_tri || !success_refine) {
-      (*it1)->to_delete = true;
+      (*it1)->to_delete = true;R_CitoCrot
       it1 = feature_vec.erase(it1);
       continue;
     }
