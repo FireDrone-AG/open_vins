@@ -10,7 +10,7 @@ max_cameras: 1 # how many cameras we have 1 = mono, 2 = stereo, >2 = binocular (
 calib_cam_extrinsics: false # if the transform between camera and IMU should be optimized R_ItoC, p_CinI
 calib_cam_intrinsics: false # if camera intrinsics should be optimized (focal, center, distortion)
 calib_cam_timeoffset: true # if timeoffset between camera and IMU should be optimized
-calib_imu_intrinsics: true # if imu intrinsics should be calibrated (rotation and skew-scale matrix)
+calib_imu_intrinsics: false # if imu intrinsics should be calibrated (rotation and skew-scale matrix)
 calib_imu_g_sensitivity: false # if gyroscope gravity sensitivity (Tg) should be calibrated
 
 max_clones: 15 # how many clones in the sliding window
@@ -112,8 +112,8 @@ use_mask: false
 
 # imu and camera spacial-temporal
 # imu config should also have the correct noise valuesimu_cam_calib_ros1-imu.yaml
-relative_config_imu: "imu_cam_calib_ros1-imu.yaml"
-relative_config_imucam: "imu_cam_calib_ros1-camchain-imucam.yaml"
+relative_config_imu: "imucamcalib_30deg_ros1-imu.yaml"
+relative_config_imucam: "imucamcalib_30deg_ros1-camchain-imucam.yaml"
 
 
 

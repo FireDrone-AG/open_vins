@@ -105,9 +105,13 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     for (const auto &clone_imu : state->_clones_IMU) {
        
       // Time-invariant extrinsics-rotation matrix
-      Eigen::Matrix<double, 3, 3> R_CitoCrot {{sqrt(3)/2, 0, 0.5},
-                                                 {0, 1, 0},
-                                                 {-0.5, 0, sqrt(3)/2}};
+      // Eigen::Matrix<double, 3, 3> R_CitoCrot {{sqrt(3)/2, 0, 0.5},
+      //                                            {0, 1, 0},
+      //                                            {-0.5, 0, sqrt(3)/2}};
+
+      Eigen::Matrix<double, 3, 3> R_CitoCrot {{1, 0, 0},
+                                              {0, 1, 0},
+                                              {0, 0, 1}};
 
       // Get current camera pose
       Eigen::Matrix<double, 3, 3> R_GtoCi = R_CitoCrot * clone_calib.second->Rot() * clone_imu.second->Rot();
@@ -141,7 +145,7 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
 
     // Remove the feature if not a success
     if (!success_tri || !success_refine) {
-      (*it1)->to_delete = true;R_CitoCrot
+      (*it1)->to_delete = true;
       it1 = feature_vec.erase(it1);
       continue;
     }
