@@ -78,7 +78,13 @@ void UpdaterHelper::get_feature_jacobian_representation(std::shared_ptr<State> s
   assert(feature.anchor_cam_id != -1);
 
   // Anchor pose orientation and position, and camera calibration for our anchor camera
-  Eigen::Matrix3d R_ItoC = state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
+
+  double gimbal_deg = 30.0;
+  double gimbal = gimbal_deg * M_PI / 180.0;
+
+  Eigen::Matrix3d R_CitoCrot = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
+
+  Eigen::Matrix3d R_ItoC = R_CitoCrot * state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
   Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->pos();
   Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feature.anchor_clone_timestamp)->Rot();
   Eigen::Vector3d p_IinG = state->_clones_IMU.at(feature.anchor_clone_timestamp)->pos();
@@ -270,7 +276,13 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
     // Assert that we have an anchor pose for this feature
     assert(feature.anchor_cam_id != -1);
     // Get calibration for our anchor camera
-    Eigen::Matrix3d R_ItoC = state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
+
+    double gimbal_deg = 30.0;
+    double gimbal = gimbal_deg * M_PI / 180.0;
+
+    Eigen::Matrix3d R_CitoCrot = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
+
+    Eigen::Matrix3d R_ItoC = R_CitoCrot * state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
     Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->pos();
     // Anchor pose orientation and position
     Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feature.anchor_clone_timestamp)->Rot();
@@ -314,9 +326,15 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
   for (auto const &pair : feature.timestamps) {
 
     // Our calibration between the IMU and CAMi frames
+
+    double gimbal_deg = 30.0;
+    double gimbal = gimbal_deg * M_PI / 180.0;
+
+    Eigen::Matrix3d R_CitoCrot = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
+    
     std::shared_ptr<Vec> distortion = state->_cam_intrinsics.at(pair.first);
     std::shared_ptr<PoseJPL> calibration = state->_calib_IMUtoCAM.at(pair.first);
-    Eigen::Matrix3d R_ItoC = calibration->Rot();
+    Eigen::Matrix3d R_ItoC = R_CitoCrot * calibration->Rot();
     Eigen::Vector3d p_IinC = calibration->pos();
 
     // Loop through all measurements for this specific camera

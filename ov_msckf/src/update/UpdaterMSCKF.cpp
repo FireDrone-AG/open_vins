@@ -103,15 +103,12 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     // For this camera, create the vector of camera poses
     std::unordered_map<double, FeatureInitializer::ClonePose> clones_cami;
     for (const auto &clone_imu : state->_clones_IMU) {
-       
-      // Time-invariant extrinsics-rotation matrix
-      Eigen::Matrix<double, 3, 3> R_CitoCrot {{sqrt(3)/2, 0, 0.5},
-                                                 {0, 1, 0},
-                                                 {-0.5, 0, sqrt(3)/2}};
 
-      // Eigen::Matrix<double, 3, 3> R_CitoCrot {{1, 0, 0},
-      //                                         {0, 1, 0},
-      //                                         {0, 0, 1}};
+      // Time-invariant extrinsics-rotation matrix
+      double gimbal_deg = 30.0;
+      double gimbal = gimbal_deg * M_PI / 180.0;
+
+      Eigen::Matrix3d R_CitoCrot = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
 
       // Get current camera pose
       Eigen::Matrix<double, 3, 3> R_GtoCi = R_CitoCrot * clone_calib.second->Rot() * clone_imu.second->Rot();

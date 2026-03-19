@@ -339,7 +339,23 @@ void ROS2Visualizer::visualize_odometry(double timestamp) {
 
   // Loop through each camera calibration and publish it
   for (const auto &calib : state->_calib_IMUtoCAM) {
-    geometry_msgs::msg::TransformStamped trans_calib = ROSVisualizerHelper::get_stamped_transform_from_pose(_node, calib.second, true);
+
+    double gimbal_deg = -30.0;
+    double gimbal = gimbal_deg * M_PI / 180.0;
+
+    Eigen::Matrix3d R_CitoCrot = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
+
+    Eigen::Matrix<double, 3, 3> R_GtoCi = R_CitoCrot * calib.second->Rot();
+    Eigen::Matrix<double, 3, 1> p_CioinG = calib.second->pos();
+
+    Eigen::Matrix<double, 7, 1> gimbal_calib;
+    gimbal_calib.block(0, 0, 4, 1) = ov_core::rot_2_quat(R_GtoCi);
+    gimbal_calib.block(4, 0, 3, 1) = p_CioinG;
+
+    auto gimbal_calib_ptr = std::make_shared<ov_type::PoseJPL>();     // std::shared_ptr<ov_type::PoseJPL> gimbal_calib_ptr;
+    gimbal_calib_ptr->set_value(gimbal_calib);
+
+    geometry_msgs::msg::TransformStamped trans_calib = ROSVisualizerHelper::get_stamped_transform_from_pose(_node, gimbal_calib_ptr, true);       // calib.second = _calib_IMUtoCAM.second, of type std::shared_ptr<ov_type::PoseJPl>>
     trans_calib.header.stamp = _node->now();
     trans_calib.header.frame_id = "imu";
     trans_calib.child_frame_id = "cam" + std::to_string(calib.first);

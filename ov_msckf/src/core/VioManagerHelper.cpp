@@ -224,7 +224,13 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     Eigen::Vector3d p_IinG = state->_clones_IMU.at(active_tracks_time)->pos();
 
     // Calibration for this cam_id
-    Eigen::Matrix3d R_ItoC = state->_calib_IMUtoCAM.at(cam_id)->Rot();
+     
+    double gimbal_deg = 30.0;
+    double gimbal = gimbal_deg * M_PI / 180.0;
+
+    Eigen::Matrix3d R_CitoCrot = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
+
+    Eigen::Matrix3d R_ItoC = R_CitoCrot * state->_calib_IMUtoCAM.at(cam_id)->Rot();
     Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(cam_id)->pos();
 
     // Convert current CAMERA position relative to global
@@ -326,9 +332,15 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
   }
 
   // Calibration of the first camera (cam0)
+
+  double gimbal_deg = 30.0;
+  double gimbal = gimbal_deg * M_PI / 180.0;
+
+  Eigen::Matrix3d R_CitoCrot = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
+  
   std::shared_ptr<Vec> distortion = state->_cam_intrinsics.at(0);
   std::shared_ptr<PoseJPL> calibration = state->_calib_IMUtoCAM.at(0);
-  Eigen::Matrix<double, 3, 3> R_ItoC = calibration->Rot();
+  Eigen::Matrix<double, 3, 3> R_ItoC = R_CitoCrot * calibration->Rot();
   Eigen::Matrix<double, 3, 1> p_IinC = calibration->pos();
 
   // Get current IMU clone state
