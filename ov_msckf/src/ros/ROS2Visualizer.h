@@ -40,6 +40,7 @@
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <sensor_msgs/point_cloud2_iterator.hpp>
 #include <std_msgs/msg/float64.hpp>
+#include <std_msgs/msg/int32.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/transform_datatypes.h>
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
@@ -118,6 +119,9 @@ public:
   /// Callback for synchronized stereo camera information
   void callback_stereo(const sensor_msgs::msg::Image::ConstSharedPtr msg0, const sensor_msgs::msg::Image::ConstSharedPtr msg1, int cam_id0,
                        int cam_id1);
+  
+  /// Callback for gimbal position
+  void callback_gimbal(const std_msgs::msg::Int32::SharedPtr msg);
 
 protected:
   /// Publish the current state
@@ -162,6 +166,8 @@ protected:
   std::vector<std::shared_ptr<message_filters::Synchronizer<sync_pol>>> sync_cam;
   std::vector<std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>>> sync_subs_cam;
 
+  rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr sub_gimbal;
+
   // For path viz
   std::vector<geometry_msgs::msg::PoseStamped> poses_imu;
 
@@ -180,6 +186,7 @@ protected:
 
   // Thread atomics
   std::atomic<bool> thread_update_running;
+  std::atomic<int> gimbal_pos{0};
 
   /// Queue up camera measurements sorted by time and trigger once we have
   /// exactly one IMU measurement with timestamp newer than the camera measurement

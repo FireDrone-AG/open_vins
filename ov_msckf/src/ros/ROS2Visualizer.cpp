@@ -174,6 +174,14 @@ void ROS2Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
                                                               std::bind(&ROS2Visualizer::callback_inertial, this, std::placeholders::_1));
   PRINT_INFO("subscribing to IMU: %s\n", topic_imu.c_str());
 
+  // Create gimbal subscriber
+  std::string topic_gimbal;
+  _node->declare_parameter<std::string>("topic_gimbal", "/gimbal0");
+  _node->get_parameter("topic_gimbal", topic_gimbal);
+  parser->parse_external("relative_config_imucam", "cam0", "gimbaltopic", topic_gimbal);
+  sub_gimbal = _node->create_subscription<std_msgs::msg::Int32>(topic_gimbal, 10, std::bind(&ROS2Visualizer::callback_gimbal, this, std::placeholders::_1));
+  PRINT_INFO("subscribing to gimbal: %s\n", topic_gimbal.c_str());
+
   // Logic for sync stereo subscriber
   // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
   if (_app->get_params().state_options.num_cameras == 2) {
@@ -340,7 +348,7 @@ void ROS2Visualizer::visualize_odometry(double timestamp) {
   // Loop through each camera calibration and publish it
   for (const auto &calib : state->_calib_IMUtoCAM) {
 
-    double gimbal_deg = -30.0;
+    double gimbal_deg = 30.0;
     double gimbal = gimbal_deg * M_PI / 180.0;
 
     Eigen::Matrix3d R_CitoCrot = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
@@ -602,6 +610,10 @@ void ROS2Visualizer::callback_stereo(const sensor_msgs::msg::Image::ConstSharedP
   std::lock_guard<std::mutex> lck(camera_queue_mtx);
   camera_queue.push_back(message);
   std::sort(camera_queue.begin(), camera_queue.end());
+}
+
+void ROS2Visualizer::callback_gimbal(const std_msgs::msg::Int32::SharedPtr msg) {
+  gimbal_pos.store(msg->data, std::memory_order_relaxed);
 }
 
 void ROS2Visualizer::publish_state() {

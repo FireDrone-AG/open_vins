@@ -14,3 +14,4 @@ cam0:
   resolution: [1280, 720]
   rostopic: /image_decompressed
   timeshift_cam_imu: 0.008827257164273296
+  gimbaltopic: /position
