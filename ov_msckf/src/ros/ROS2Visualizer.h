@@ -56,6 +56,8 @@
 #include <boost/filesystem.hpp>
 #include <cv_bridge/cv_bridge.h>
 
+#include "utils/sensor_data.h"
+
 namespace ov_core {
 class YamlParser;
 struct CameraData;
@@ -168,6 +170,9 @@ protected:
 
   rclcpp::Subscription<std_msgs::msg::Int32>::SharedPtr sub_gimbal;
 
+  ov_core::GimbalData latest_gimbal_rot{0.0, Eigen::Matrix3d::Identity()};
+  std::mutex gimbal_rot_mtx;
+
   // For path viz
   std::vector<geometry_msgs::msg::PoseStamped> poses_imu;
 
@@ -186,7 +191,6 @@ protected:
 
   // Thread atomics
   std::atomic<bool> thread_update_running;
-  std::atomic<int> gimbal_pos{0};
 
   /// Queue up camera measurements sorted by time and trigger once we have
   /// exactly one IMU measurement with timestamp newer than the camera measurement

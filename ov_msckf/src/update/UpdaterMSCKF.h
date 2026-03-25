@@ -29,6 +29,8 @@
 
 #include "UpdaterOptions.h"
 
+#include "utils/sensor_data.h"
+
 namespace ov_core {
 class Feature;
 class FeatureInitializer;
@@ -67,6 +69,14 @@ public:
    */
   void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec);
 
+  void get_gimbal_rot(const ov_core::GimbalData &message) {
+
+    // replace with newest value
+    std::lock_guard<std::mutex> lck(gimbal_rot_mtx);
+    R_CitoCrot = message;
+  
+  }
+
 protected:
   /// Options used during update
   UpdaterOptions _options;
@@ -76,6 +86,9 @@ protected:
 
   /// Chi squared 95th percentile table (lookup would be size of residual)
   std::map<int, double> chi_squared_table;
+
+  ov_core::GimbalData R_CitoCrot{0.0, Eigen::Matrix3d::Identity()};
+  std::mutex gimbal_rot_mtx;
 };
 
 } // namespace ov_msckf

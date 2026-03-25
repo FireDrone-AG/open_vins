@@ -74,11 +74,13 @@ public:
    */
   void feed_measurement_imu(const ov_core::ImuData &message);
 
+  void feed_gimbal_rot(const ov_core::GimbalData &message);
+
   /**
    * @brief Feed function for camera measurements
    * @param message Contains our timestamp, images, and camera ids
    */
-  void feed_measurement_camera(const ov_core::CameraData &message) { track_image_and_update(message); }
+  void feed_measurement_camera(const ov_core::CameraData &message, const ov_core::GimbalData &gimbal_message) { track_image_and_update(message, gimbal_message); }
 
   /**
    * @brief Feed function for a synchronized simulated cameras
@@ -87,7 +89,7 @@ public:
    * @param feats Raw uv simulated measurements
    */
   void feed_measurement_simulation(double timestamp, const std::vector<int> &camids,
-                                   const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats);
+                                   const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats, const ov_core::GimbalData &gimbal_message);
 
   /**
    * @brief Given a state, this will initialize our IMU state.
@@ -145,13 +147,13 @@ protected:
    *
    * @param message Contains our timestamp, images, and camera ids
    */
-  void track_image_and_update(const ov_core::CameraData &message);
+  void track_image_and_update(const ov_core::CameraData &message, const ov_core::GimbalData &gimbal_message);
 
   /**
    * @brief This will do the propagation and feature updates to the state
    * @param message Contains our timestamp, images, and camera ids
    */
-  void do_feature_propagate_update(const ov_core::CameraData &message);
+  void do_feature_propagate_update(const ov_core::CameraData &message, const ov_core::GimbalData &gimbal_message);
 
   /**
    * @brief This function will try to initialize the state.
@@ -174,7 +176,7 @@ protected:
    *
    * @param message Contains our timestamp, images, and camera ids
    */
-  void retriangulate_active_tracks(const ov_core::CameraData &message);
+  void retriangulate_active_tracks(const ov_core::CameraData &message, const ov_core::GimbalData &gimbal_message);
 
   /// Manager parameters
   VioManagerOptions params;

@@ -37,6 +37,7 @@
 
 #include <math.h>
 
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
@@ -104,14 +105,8 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     std::unordered_map<double, FeatureInitializer::ClonePose> clones_cami;
     for (const auto &clone_imu : state->_clones_IMU) {
 
-      // Time-invariant extrinsics-rotation matrix
-      double gimbal_deg = 30.0;
-      double gimbal = gimbal_deg * M_PI / 180.0;
-
-      Eigen::Matrix3d R_CitoCrot = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
-
       // Get current camera pose
-      Eigen::Matrix<double, 3, 3> R_GtoCi = R_CitoCrot * clone_calib.second->Rot() * clone_imu.second->Rot();
+      Eigen::Matrix<double, 3, 3> R_GtoCi = R_CitoCrot.R * clone_calib.second->Rot() * clone_imu.second->Rot();
       Eigen::Matrix<double, 3, 1> p_CioinG = clone_imu.second->pos() - R_GtoCi.transpose() * clone_calib.second->pos();
 
       // Append to our map
@@ -208,7 +203,7 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     std::vector<std::shared_ptr<Type>> Hx_order;
 
     // Get the Jacobian for this feature
-    UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
+    UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order, R_CitoCrot);
 
     // Nullspace project
     UpdaterHelper::nullspace_project_inplace(H_f, H_x, res);

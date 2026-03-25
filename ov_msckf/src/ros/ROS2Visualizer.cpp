@@ -348,12 +348,7 @@ void ROS2Visualizer::visualize_odometry(double timestamp) {
   // Loop through each camera calibration and publish it
   for (const auto &calib : state->_calib_IMUtoCAM) {
 
-    double gimbal_deg = 30.0;
-    double gimbal = gimbal_deg * M_PI / 180.0;
-
-    Eigen::Matrix3d R_CitoCrot = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
-
-    Eigen::Matrix<double, 3, 3> R_GtoCi = R_CitoCrot * calib.second->Rot();
+    Eigen::Matrix<double, 3, 3> R_GtoCi = latest_gimbal_rot.R * calib.second->Rot();
     Eigen::Matrix<double, 3, 1> p_CioinG = calib.second->pos();
 
     Eigen::Matrix<double, 7, 1> gimbal_calib;
@@ -499,7 +494,7 @@ void ROS2Visualizer::callback_inertial(const sensor_msgs::msg::Imu::SharedPtr ms
       while (!camera_queue.empty() && camera_queue.at(0).timestamp < timestamp_imu_inC) {
         auto rT0_1 = boost::posix_time::microsec_clock::local_time();
         double update_dt = 100.0 * (timestamp_imu_inC - camera_queue.at(0).timestamp);
-        _app->feed_measurement_camera(camera_queue.at(0));
+        _app->feed_measurement_camera(camera_queue.at(0), latest_gimbal_rot);
         visualize();
         camera_queue.pop_front();
         auto rT0_2 = boost::posix_time::microsec_clock::local_time();
@@ -512,11 +507,30 @@ void ROS2Visualizer::callback_inertial(const sensor_msgs::msg::Imu::SharedPtr ms
 
   // If we are single threaded, then run single threaded
   // Otherwise detach this thread so it runs in the background!
-  if (!_app->get_params().use_multi_threading_subs) {
+  if (!_app->get_params().use_multi_threading_subs) { //std::lock_guard<std::mutex> lck(imu_data_mtx);
     thread.join();
   } else {
     thread.detach();
   }
+}
+
+void ROS2Visualizer::callback_gimbal(const std_msgs::msg::Int32::SharedPtr msg) {
+
+  // latest_gimbal_rot.timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
+
+  double gimbal_deg = 180.0 - msg->data * 360.0/4095.0;
+  double gimbal = gimbal_deg * M_PI / 180.0;
+  
+  Eigen::Matrix<double, 3, 3> R_local;
+  R_local = Eigen::AngleAxisd(gimbal, Eigen::Vector3d::UnitX()).toRotationMatrix();
+
+  {
+  std::lock_guard<std::mutex> lock(gimbal_rot_mtx);
+  latest_gimbal_rot.R = R_local;
+  }
+
+  // Send it to VIO system
+  _app->feed_gimbal_rot(latest_gimbal_rot);
 }
 
 void ROS2Visualizer::callback_monocular(const sensor_msgs::msg::Image::SharedPtr msg0, int cam_id0) {
@@ -610,10 +624,6 @@ void ROS2Visualizer::callback_stereo(const sensor_msgs::msg::Image::ConstSharedP
   std::lock_guard<std::mutex> lck(camera_queue_mtx);
   camera_queue.push_back(message);
   std::sort(camera_queue.begin(), camera_queue.end());
-}
-
-void ROS2Visualizer::callback_gimbal(const std_msgs::msg::Int32::SharedPtr msg) {
-  gimbal_pos.store(msg->data, std::memory_order_relaxed);
 }
 
 void ROS2Visualizer::publish_state() {

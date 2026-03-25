@@ -32,6 +32,9 @@
 #include "utils/colors.h"
 #include "utils/print.h"
 #include "utils/quat_ops.h"
+#include "utils/sensor_data.h"
+
+#include "UpdaterMSCKF.h"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
@@ -58,7 +61,7 @@ UpdaterSLAM::UpdaterSLAM(UpdaterOptions &options_slam, UpdaterOptions &options_a
   }
 }
 
-void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>> &feature_vec) {
+void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>> &feature_vec, const ov_core::GimbalData &gimbal_message) {
 
   // Return if no features
   if (feature_vec.empty())
@@ -182,7 +185,7 @@ void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::sh
     std::vector<std::shared_ptr<Type>> Hx_order;
 
     // Get the Jacobian for this feature
-    UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
+    UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order, gimbal_message);
 
     // If we are doing the single feature representation, then we need to remove the bearing portion
     // To do so, we project the bearing portion onto the state and depth Jacobians and the residual.
@@ -250,7 +253,7 @@ void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::sh
   }
 }
 
-void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>> &feature_vec) {
+void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>> &feature_vec, const ov_core::GimbalData &gimbal_message) {
 
   // Return if no features
   if (feature_vec.empty())
@@ -359,7 +362,7 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
     std::vector<std::shared_ptr<Type>> Hx_order;
 
     // Get the Jacobian for this feature
-    UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
+    UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order, gimbal_message);
 
     // Place Jacobians in one big Jacobian, since the landmark is already in our state vector
     Eigen::MatrixXd H_xf = H_x;
@@ -478,7 +481,7 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
   PRINT_ALL("[SLAM-UP]: %.4f seconds total\n", (rT3 - rT1).total_microseconds() * 1e-6);
 }
 
-void UpdaterSLAM::change_anchors(std::shared_ptr<State> state) {
+void UpdaterSLAM::change_anchors(std::shared_ptr<State> state, const ov_core::GimbalData &gimbal_message) {
 
   // Return if we do not have enough clones
   if ((int)state->_clones_IMU.size() <= state->_options.max_clone_size) {
@@ -497,13 +500,13 @@ void UpdaterSLAM::change_anchors(std::shared_ptr<State> state) {
     // Else lets see if it is anchored in the clone that will be marginalized
     assert(marg_timestep <= f.second->_anchor_clone_timestamp);
     if (f.second->_anchor_clone_timestamp == marg_timestep) {
-      perform_anchor_change(state, f.second, state->_timestamp, f.second->_anchor_cam_id);
+      perform_anchor_change(state, f.second, state->_timestamp, f.second->_anchor_cam_id, gimbal_message);
     }
   }
 }
 
 void UpdaterSLAM::perform_anchor_change(std::shared_ptr<State> state, std::shared_ptr<Landmark> landmark, double new_anchor_timestamp,
-                                        size_t new_cam_id) {
+                                        size_t new_cam_id, const ov_core::GimbalData &gimbal_message) {
 
   // Assert that this is an anchored representation
   assert(LandmarkRepresentation::is_relative_representation(landmark->_feat_representation));
@@ -522,7 +525,7 @@ void UpdaterSLAM::perform_anchor_change(std::shared_ptr<State> state, std::share
   Eigen::MatrixXd H_f_old;
   std::vector<Eigen::MatrixXd> H_x_old;
   std::vector<std::shared_ptr<Type>> x_order_old;
-  UpdaterHelper::get_feature_jacobian_representation(state, old_feat, H_f_old, H_x_old, x_order_old);
+  UpdaterHelper::get_feature_jacobian_representation(state, old_feat, H_f_old, H_x_old, x_order_old, gimbal_message);
 
   // Create future feature representation
   UpdaterHelper::UpdaterHelperFeature new_feat;
@@ -575,7 +578,7 @@ void UpdaterSLAM::perform_anchor_change(std::shared_ptr<State> state, std::share
   Eigen::MatrixXd H_f_new;
   std::vector<Eigen::MatrixXd> H_x_new;
   std::vector<std::shared_ptr<Type>> x_order_new;
-  UpdaterHelper::get_feature_jacobian_representation(state, new_feat, H_f_new, H_x_new, x_order_new);
+  UpdaterHelper::get_feature_jacobian_representation(state, new_feat, H_f_new, H_x_new, x_order_new, gimbal_message);
 
   //==========================================================================
   //==========================================================================

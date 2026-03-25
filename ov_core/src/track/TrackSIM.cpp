@@ -28,7 +28,7 @@
 using namespace ov_core;
 
 void TrackSIM::feed_measurement_simulation(double timestamp, const std::vector<int> &camids,
-                                           const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats) {
+                                           const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats, const ov_core::GimbalData &gimbal_message) {
 
   // Assert our two vectors are equal
   assert(camids.size() == feats.size());

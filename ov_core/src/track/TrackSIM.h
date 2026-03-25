@@ -61,7 +61,7 @@ public:
    * @param feats Raw uv simulated measurements
    */
   void feed_measurement_simulation(double timestamp, const std::vector<int> &camids,
-                                   const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats);
+                                   const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats, const ov_core::GimbalData &gimbal_message);
 };
 
 } // namespace ov_core

@@ -78,6 +78,14 @@ struct CameraData {
   }
 };
 
+struct GimbalData {
+
+  double timestamp;
+
+  Eigen::Matrix<double, 3, 3> R;
+
+};
+
 } // namespace ov_core
 
 #endif // OV_CORE_SENSOR_DATA_H

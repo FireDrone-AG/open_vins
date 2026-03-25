@@ -164,9 +164,12 @@ int main(int argc, char **argv) {
     std::vector<int> camids;
     std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> feats;
     bool hascam = sim->get_next_cam(time_cam, camids, feats);
+
+    ov_core::GimbalData gimbal_message;
+
     if (hascam) {
       if (buffer_timecam != -1) {
-        sys->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats);
+        sys->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats, gimbal_message);
 #if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
         viz->visualize();
 #endif

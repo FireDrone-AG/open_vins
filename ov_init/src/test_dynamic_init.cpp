@@ -154,8 +154,10 @@ int main(int argc, char **argv) {
       // Pass to our feature database / tracker
       if (buffer_timecam != -1) {
 
+        ov_core::GimbalData gimbal_message;
+
         // Feed it
-        tracker->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats);
+        tracker->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats, gimbal_message);
 
         // Display the resulting tracks
         // cv::Mat img_history;

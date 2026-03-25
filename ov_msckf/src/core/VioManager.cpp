@@ -188,8 +188,14 @@ void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
   }
 }
 
+void VioManager::feed_gimbal_rot(const ov_core::GimbalData &message) {
+
+  updaterMSCKF->get_gimbal_rot(message);
+
+}
+
 void VioManager::feed_measurement_simulation(double timestamp, const std::vector<int> &camids,
-                                             const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats) {
+                                             const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats, const ov_core::GimbalData &gimbal_message) {
 
   // Start timing
   rT1 = boost::posix_time::microsec_clock::local_time();
@@ -212,7 +218,7 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
   }
 
   // Feed our simulation tracker
-  trackSIM->feed_measurement_simulation(timestamp, camids, feats);
+  trackSIM->feed_measurement_simulation(timestamp, camids, feats, gimbal_message);
   rT2 = boost::posix_time::microsec_clock::local_time();
 
   // Check if we should do zero-velocity, if so update the state with it
@@ -250,10 +256,10 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     message.images.push_back(cv::Mat::zeros(cv::Size(width, height), CV_8UC1));
     message.masks.push_back(cv::Mat::zeros(cv::Size(width, height), CV_8UC1));
   }
-  do_feature_propagate_update(message);
+  do_feature_propagate_update(message, gimbal_message);
 }
 
-void VioManager::track_image_and_update(const ov_core::CameraData &message_const) {
+void VioManager::track_image_and_update(const ov_core::CameraData &message_const, const ov_core::GimbalData &gimbal_message) {
 
   // Start timing
   rT1 = boost::posix_time::microsec_clock::local_time();
@@ -317,10 +323,10 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
   }
 
   // Call on our propagate and update function
-  do_feature_propagate_update(message);
+  do_feature_propagate_update(message, gimbal_message);
 }
 
-void VioManager::do_feature_propagate_update(const ov_core::CameraData &message) {
+void VioManager::do_feature_propagate_update(const ov_core::CameraData &message, const ov_core::GimbalData &gimbal_message) {
 
   //===================================================================================
   // State propagation, and clone augmentation
@@ -538,13 +544,13 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     feats_slam_UPDATE.erase(feats_slam_UPDATE.begin(),
                             feats_slam_UPDATE.begin() + std::min(state->_options.max_slam_in_update, (int)feats_slam_UPDATE.size()));
     // Do the update
-    updaterSLAM->update(state, featsup_TEMP);
+    updaterSLAM->update(state, featsup_TEMP, gimbal_message);
     feats_slam_UPDATE_TEMP.insert(feats_slam_UPDATE_TEMP.end(), featsup_TEMP.begin(), featsup_TEMP.end());
     propagator->invalidate_cache();
   }
   feats_slam_UPDATE = feats_slam_UPDATE_TEMP;
   rT5 = boost::posix_time::microsec_clock::local_time();
-  updaterSLAM->delayed_init(state, feats_slam_DELAYED);
+  updaterSLAM->delayed_init(state, feats_slam_DELAYED, gimbal_message);
   rT6 = boost::posix_time::microsec_clock::local_time();
 
   //===================================================================================
@@ -555,7 +561,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   if (message.sensor_ids.at(0) == 0) {
 
     // Re-triangulate features
-    retriangulate_active_tracks(message);
+    retriangulate_active_tracks(message, gimbal_message);
 
     // Clear the MSCKF features only on the base camera
     // Thus we should be able to visualize the other unique camera stream
@@ -582,7 +588,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   }
 
   // First do anchor change if we are about to lose an anchor pose
-  updaterSLAM->change_anchors(state);
+  updaterSLAM->change_anchors(state, gimbal_message);
 
   // Cleanup any features older than the marginalization time
   if ((int)state->_clones_IMU.size() > state->_options.max_clone_size) {

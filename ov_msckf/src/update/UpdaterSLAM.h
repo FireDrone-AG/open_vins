@@ -29,6 +29,9 @@
 
 #include "UpdaterOptions.h"
 
+#include "UpdaterMSCKF.h"
+#include "utils/sensor_data.h"
+
 namespace ov_core {
 class Feature;
 class FeatureInitializer;
@@ -67,14 +70,14 @@ public:
    * @param state State of the filter
    * @param feature_vec Features that can be used for update
    */
-  void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec);
+  void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec, const ov_core::GimbalData &gimbal_message);
 
   /**
    * @brief Given max track features, this will try to use them to initialize them in the state.
    * @param state State of the filter
    * @param feature_vec Features that can be used for update
    */
-  void delayed_init(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec);
+  void delayed_init(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec, const ov_core::GimbalData &gimbal_message);
 
   /**
    * @brief Will change SLAM feature anchors if it will be marginalized
@@ -84,7 +87,7 @@ public:
    *
    * @param state State of the filter
    */
-  void change_anchors(std::shared_ptr<State> state);
+  void change_anchors(std::shared_ptr<State> state, const ov_core::GimbalData &gimbal_message);
 
 protected:
   /**
@@ -95,7 +98,7 @@ protected:
    * @param new_cam_id Which camera frame we want to move to
    */
   void perform_anchor_change(std::shared_ptr<State> state, std::shared_ptr<ov_type::Landmark> landmark, double new_anchor_timestamp,
-                             size_t new_cam_id);
+                             size_t new_cam_id, const ov_core::GimbalData &gimbal_message);
 
   /// Options used during update for slam features
   UpdaterOptions _options_slam;
