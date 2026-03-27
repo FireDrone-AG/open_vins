@@ -14,6 +14,8 @@ find_package(image_transport REQUIRED)
 find_package(ov_core REQUIRED)
 find_package(ov_init REQUIRED)
 
+find_package(ov_interfaces REQUIRED)
+
 # Describe ROS project
 option(ENABLE_ROS "Enable or disable building with ROS (if it is found)" ON)
 if (NOT ENABLE_ROS)
@@ -47,6 +49,7 @@ list(APPEND ament_libraries
         image_transport
         ov_core
         ov_init
+        ov_interfaces
 )
 
 ##################################################

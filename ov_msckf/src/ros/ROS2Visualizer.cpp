@@ -179,7 +179,7 @@ void ROS2Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   _node->declare_parameter<std::string>("topic_gimbal", "/gimbal0");
   _node->get_parameter("topic_gimbal", topic_gimbal);
   parser->parse_external("relative_config_imucam", "cam0", "gimbaltopic", topic_gimbal);
-  sub_gimbal = _node->create_subscription<std_msgs::msg::Int32>(topic_gimbal, 10, std::bind(&ROS2Visualizer::callback_gimbal, this, std::placeholders::_1));
+  sub_gimbal = _node->create_subscription<ov_interfaces::msg::GimbalStamped>(topic_gimbal, 10, std::bind(&ROS2Visualizer::callback_gimbal, this, std::placeholders::_1));
   PRINT_INFO("subscribing to gimbal: %s\n", topic_gimbal.c_str());
 
   // Logic for sync stereo subscriber
@@ -514,9 +514,9 @@ void ROS2Visualizer::callback_inertial(const sensor_msgs::msg::Imu::SharedPtr ms
   }
 }
 
-void ROS2Visualizer::callback_gimbal(const std_msgs::msg::Int32::SharedPtr msg) {
+void ROS2Visualizer::callback_gimbal(const ov_interfaces::msg::GimbalStamped::SharedPtr msg) {
 
-  // latest_gimbal_rot.timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
+  latest_gimbal_rot.timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
 
   double gimbal_deg = 180.0 - msg->data * 360.0/4095.0;
   double gimbal = gimbal_deg * M_PI / 180.0;
