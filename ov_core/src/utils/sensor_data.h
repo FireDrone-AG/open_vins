@@ -84,6 +84,16 @@ struct GimbalData {
 
   Eigen::Matrix<double, 3, 3> R;
 
+    bool operator<(const GimbalData &other) const {
+    // if (timestamp == other.timestamp) {
+    //   int id = *std::min_element(sensor_ids.begin(), sensor_ids.end());
+    //   int id_other = *std::min_element(other.sensor_ids.begin(), other.sensor_ids.end());
+    //   return id < id_other;
+    // } else {
+      return timestamp < other.timestamp;
+    }
+  
+
 };
 
 } // namespace ov_core

@@ -112,7 +112,7 @@ public:
    * @param timestamp Next camera timestamp we want to see if we should propagate to.
    * @return True if the system is currently at zero velocity
    */
-  bool try_update(std::shared_ptr<State> state, double timestamp);
+  bool try_update(std::shared_ptr<State> state, double timestamp, const ov_core::GimbalData &gimbal_message);
 
 protected:
   /// Options used during update (chi2 multiplier)

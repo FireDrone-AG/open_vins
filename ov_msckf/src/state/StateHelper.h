@@ -25,6 +25,8 @@
 #include <Eigen/Eigen>
 #include <memory>
 
+#include "utils/sensor_data.h"
+
 namespace ov_type {
 class Type;
 } // namespace ov_type
@@ -210,7 +212,7 @@ public:
    * @param state Pointer to state
    * @param last_w The estimated angular velocity at cloning time (used to estimate imu-cam time offset)
    */
-  static void augment_clone(std::shared_ptr<State> state, Eigen::Matrix<double, 3, 1> last_w);
+  static void augment_clone(std::shared_ptr<State> state, Eigen::Matrix<double, 3, 1> last_w, const ov_core::GimbalData &gimbal_message);
 
   /**
    * @brief Remove the oldest clone, if we have more then the max clone count!!

@@ -27,6 +27,8 @@
 #include "utils/colors.h"
 #include "utils/print.h"
 
+#include "utils/sensor_data.h"
+
 #include <boost/math/distributions/chi_squared.hpp>
 
 using namespace ov_core;
@@ -267,15 +269,15 @@ Eigen::MatrixXd StateHelper::get_full_covariance(std::shared_ptr<State> state) {
   // Return the covariance
   return full_cov;
 }
-
+// void StateHelper::marginalize(std::shared_ptr<State> state, std::shared_ptr<Type> marg) {
 void StateHelper::marginalize(std::shared_ptr<State> state, std::shared_ptr<Type> marg) {
 
   // Check if the current state has the element we want to marginalize
-  if (std::find(state->_variables.begin(), state->_variables.end(), marg) == state->_variables.end()) {
-    PRINT_ERROR(RED "StateHelper::marginalize() - Called on variable that is not in the state\n" RESET);
-    PRINT_ERROR(RED "StateHelper::marginalize() - Marginalization, does NOT work on sub-variables yet...\n" RESET);
-    std::exit(EXIT_FAILURE);
-  }
+          // if (std::find(state->_variables.begin(), state->_variables.end(), marg) == state->_variables.end()) {
+          //   PRINT_ERROR(RED "StateHelper::marginalize() - Called on variable that is not in the state\n" RESET);
+          //   PRINT_ERROR(RED "StateHelper::marginalize() - Marginalization, does NOT work on sub-variables yet...\n" RESET);
+          //   std::exit(EXIT_FAILURE);
+          // }
 
   // Generic covariance has this form for x_1, x_m, x_2. If we want to remove x_m:
   //
@@ -576,7 +578,7 @@ void StateHelper::initialize_invertible(std::shared_ptr<State> state, std::share
   // PRINT_DEBUG(ss.str().c_str());
 }
 
-void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<double, 3, 1> last_w) {
+void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<double, 3, 1> last_w, const ov_core::GimbalData &gimbal_message) {
 
   // We can't insert a clone that occured at the same timestamp!
   if (state->_clones_IMU.find(state->_timestamp) != state->_clones_IMU.end()) {
@@ -586,7 +588,7 @@ void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<doub
 
   // Call on our cloner and add it to our vector of types
   // NOTE: this will clone the clone pose to the END of the covariance...
-  std::shared_ptr<Type> posetemp = StateHelper::clone(state, state->_imu->pose());
+  std::shared_ptr<Type> posetemp = StateHelper::clone(state, state->_imu->pose());  //std::shared_ptr<Type> StateHelper::clone(std::shared_ptr<State> state, std::shared_ptr<Type> variable_to_clone)
 
   // Cast to a JPL pose type, check if valid
   std::shared_ptr<PoseJPL> pose = std::dynamic_pointer_cast<PoseJPL>(posetemp);
@@ -595,8 +597,22 @@ void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<doub
     std::exit(EXIT_FAILURE);
   }
 
+  std::stringstream ss;
+  ss << "\n" << gimbal_message.R;
+
+  PRINT_INFO(YELLOW "GIMBAL ROT ADDED TO _clones_IMU: %s\n" RESET, ss.str().c_str());
+
+  // Load these into our state
+  Eigen::Matrix<double, 7, 1> gimbal_eigen;
+  gimbal_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(gimbal_message.R);
+  gimbal_eigen.block(4, 0, 3, 1).setZero();
+        
+  auto gimbal_rot_ptr = std::make_shared<PoseJPL>();
+  gimbal_rot_ptr->set_value(gimbal_eigen);
+  gimbal_rot_ptr->set_fej(gimbal_eigen);
+
   // Append the new clone to our clone vector
-  state->_clones_IMU[state->_timestamp] = pose;
+  state->_clones_IMU[state->_timestamp] = {pose, gimbal_rot_ptr};  // TODO: gimbal rotation at that clone time
 
   // If we are doing time calibration, then our clones are a function of the time offset
   // Logic is based on Mingyang Li and Anastasios I. Mourikis paper:
@@ -621,7 +637,7 @@ void StateHelper::marginalize_old_clone(std::shared_ptr<State> state) {
     // Lock the mutex to avoid deleting any elements from _clones_IMU while accessing it from other threads
     std::lock_guard<std::mutex> lock(state->_mutex_state);
     assert(marginal_time != INFINITY);
-    StateHelper::marginalize(state, state->_clones_IMU.at(marginal_time));
+    StateHelper::marginalize(state, state->_clones_IMU.at(marginal_time).first);
     // Note that the marginalizer should have already deleted the clone
     // Thus we just need to remove the pointer to it from our state
     state->_clones_IMU.erase(marginal_time);

@@ -165,7 +165,7 @@ protected:
    * @param message Contains our timestamp, images, and camera ids
    * @return True if we have successfully initialized
    */
-  bool try_to_initialize(const ov_core::CameraData &message);
+  bool try_to_initialize(const ov_core::CameraData &message, const ov_core::GimbalData &gimbal_message);
 
   /**
    * @brief This function will will re-triangulate all features in the current frame

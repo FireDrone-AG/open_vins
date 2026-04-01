@@ -81,8 +81,8 @@ void UpdaterHelper::get_feature_jacobian_representation(std::shared_ptr<State> s
 
   Eigen::Matrix3d R_ItoC = gimbal_message.R * state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
   Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->pos();
-  Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feature.anchor_clone_timestamp)->Rot();
-  Eigen::Vector3d p_IinG = state->_clones_IMU.at(feature.anchor_clone_timestamp)->pos();
+  Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feature.anchor_clone_timestamp).first->Rot();
+  Eigen::Vector3d p_IinG = state->_clones_IMU.at(feature.anchor_clone_timestamp).first->pos();
   Eigen::Vector3d p_FinA = feature.p_FinA;
 
   // If I am doing FEJ, I should FEJ the anchor states (should we fej calibration???)
@@ -91,8 +91,8 @@ void UpdaterHelper::get_feature_jacobian_representation(std::shared_ptr<State> s
     // "Best" feature in the global frame
     Eigen::Vector3d p_FinG_best = R_GtoI.transpose() * R_ItoC.transpose() * (feature.p_FinA - p_IinC) + p_IinG;
     // Transform the best into our anchor frame using FEJ
-    R_GtoI = state->_clones_IMU.at(feature.anchor_clone_timestamp)->Rot_fej();
-    p_IinG = state->_clones_IMU.at(feature.anchor_clone_timestamp)->pos_fej();
+    R_GtoI = state->_clones_IMU.at(feature.anchor_clone_timestamp).first->Rot_fej();
+    p_IinG = state->_clones_IMU.at(feature.anchor_clone_timestamp).first->pos_fej();
     p_FinA = (R_GtoI.transpose() * R_ItoC.transpose()).transpose() * (p_FinG_best - p_IinG) + p_IinC;
   }
   Eigen::Matrix3d R_CtoG = R_GtoI.transpose() * R_ItoC.transpose();
@@ -103,7 +103,7 @@ void UpdaterHelper::get_feature_jacobian_representation(std::shared_ptr<State> s
   H_anc.block(0, 3, 3, 3).setIdentity();
 
   // Add anchor Jacobians to our return vector
-  x_order.push_back(state->_clones_IMU.at(feature.anchor_clone_timestamp));
+  x_order.push_back(state->_clones_IMU.at(feature.anchor_clone_timestamp).first);
   H_x.push_back(H_anc);
 
   // Get calibration Jacobians (for anchor clone)
@@ -226,7 +226,7 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
     for (size_t m = 0; m < feature.timestamps[pair.first].size(); m++) {
 
       // Add this clone if it is not added already
-      std::shared_ptr<PoseJPL> clone_Ci = state->_clones_IMU.at(feature.timestamps[pair.first].at(m));
+      std::shared_ptr<PoseJPL> clone_Ci = state->_clones_IMU.at(feature.timestamps[pair.first].at(m)).first;
       if (map_hx.find(clone_Ci) == map_hx.end()) {
         map_hx.insert({clone_Ci, total_hx});
         x_order.push_back(clone_Ci);
@@ -242,7 +242,7 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
     assert(feature.anchor_cam_id != -1);
 
     // Add this anchor if it is not added already
-    std::shared_ptr<PoseJPL> clone_Ai = state->_clones_IMU.at(feature.anchor_clone_timestamp);
+    std::shared_ptr<PoseJPL> clone_Ai = state->_clones_IMU.at(feature.anchor_clone_timestamp).first;
     if (map_hx.find(clone_Ai) == map_hx.end()) {
       map_hx.insert({clone_Ai, total_hx});
       x_order.push_back(clone_Ai);
@@ -275,8 +275,8 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
     Eigen::Matrix3d R_ItoC = gimbal_message_rot.R * state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
     Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->pos();
     // Anchor pose orientation and position
-    Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feature.anchor_clone_timestamp)->Rot();
-    Eigen::Vector3d p_IinG = state->_clones_IMU.at(feature.anchor_clone_timestamp)->pos();
+    Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feature.anchor_clone_timestamp).first->Rot();
+    Eigen::Vector3d p_IinG = state->_clones_IMU.at(feature.anchor_clone_timestamp).first->pos();
     // Feature in the global frame
     p_FinG = R_GtoI.transpose() * R_ItoC.transpose() * (feature.p_FinA - p_IinC) + p_IinG;
   }
@@ -329,7 +329,7 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
       //=========================================================================
 
       // Get current IMU clone state
-      std::shared_ptr<PoseJPL> clone_Ii = state->_clones_IMU.at(feature.timestamps[pair.first].at(m));
+      std::shared_ptr<PoseJPL> clone_Ii = state->_clones_IMU.at(feature.timestamps[pair.first].at(m)).first;
       Eigen::Matrix3d R_GtoIi = clone_Ii->Rot();
       Eigen::Vector3d p_IiinG = clone_Ii->pos();
 

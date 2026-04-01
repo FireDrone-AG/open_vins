@@ -75,7 +75,7 @@ void VioManager::initialize_with_gt(Eigen::Matrix<double, 17, 1> imustate) {
   PRINT_DEBUG(GREEN "[INIT]: position = %.4f, %.4f, %.4f\n" RESET, state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2));
 }
 
-bool VioManager::try_to_initialize(const ov_core::CameraData &message) {
+bool VioManager::try_to_initialize(const ov_core::CameraData &message, const ov_core::GimbalData &gimbal_message) {
 
   // Directly return if the initialization thread is running
   // Note that we lock on the queue since we could have finished an update
@@ -158,7 +158,7 @@ bool VioManager::try_to_initialize(const ov_core::CameraData &message) {
       // Propagating over multiple seconds will become an issue if the initial biases are bad
       size_t clone_rate = (size_t)((double)camera_timestamps_to_init.size() / (double)params.state_options.max_clone_size) + 1;
       for (size_t i = 0; i < camera_timestamps_to_init.size(); i += clone_rate) {
-        propagator->propagate_and_clone(state, camera_timestamps_to_init.at(i));
+        propagator->propagate_and_clone(state, camera_timestamps_to_init.at(i), gimbal_message);
         StateHelper::marginalize_old_clone(state);
       }
       PRINT_DEBUG(YELLOW "[init]: moved the state forward %.2f seconds\n" RESET, state->_timestamp - timestamp);
@@ -220,8 +220,8 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message,
   for (auto const &cam_id : message.sensor_ids) {
 
     // IMU historical clone
-    Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(active_tracks_time)->Rot();
-    Eigen::Vector3d p_IinG = state->_clones_IMU.at(active_tracks_time)->pos();
+    Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(active_tracks_time).first->Rot();
+    Eigen::Vector3d p_IinG = state->_clones_IMU.at(active_tracks_time).first->pos();
 
     // Calibration for this cam_id
 
@@ -318,8 +318,8 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message,
       Eigen::Matrix3d R_ItoC = state->_calib_IMUtoCAM.at(feat.second->_anchor_cam_id)->Rot();
       Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(feat.second->_anchor_cam_id)->pos();
       // Anchor pose orientation and position
-      Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feat.second->_anchor_clone_timestamp)->Rot();
-      Eigen::Vector3d p_IinG = state->_clones_IMU.at(feat.second->_anchor_clone_timestamp)->pos();
+      Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feat.second->_anchor_clone_timestamp).first->Rot();
+      Eigen::Vector3d p_IinG = state->_clones_IMU.at(feat.second->_anchor_clone_timestamp).first->pos();
       // Feature in the global frame
       p_FinG = R_GtoI.transpose() * R_ItoC.transpose() * (feat.second->get_xyz(false) - p_IinC) + p_IinG;
     }
@@ -334,7 +334,7 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message,
   Eigen::Matrix<double, 3, 1> p_IinC = calibration->pos();
 
   // Get current IMU clone state
-  std::shared_ptr<PoseJPL> clone_Ii = state->_clones_IMU.at(active_tracks_time);
+  std::shared_ptr<PoseJPL> clone_Ii = state->_clones_IMU.at(active_tracks_time).first;
   Eigen::Matrix3d R_GtoIi = clone_Ii->Rot();
   Eigen::Vector3d p_IiinG = clone_Ii->pos();
 
@@ -428,8 +428,8 @@ std::vector<Eigen::Vector3d> VioManager::get_features_SLAM() {
       Eigen::Matrix<double, 3, 3> R_ItoC = state->_calib_IMUtoCAM.at(f.second->_anchor_cam_id)->Rot();
       Eigen::Matrix<double, 3, 1> p_IinC = state->_calib_IMUtoCAM.at(f.second->_anchor_cam_id)->pos();
       // Anchor pose orientation and position
-      Eigen::Matrix<double, 3, 3> R_GtoI = state->_clones_IMU.at(f.second->_anchor_clone_timestamp)->Rot();
-      Eigen::Matrix<double, 3, 1> p_IinG = state->_clones_IMU.at(f.second->_anchor_clone_timestamp)->pos();
+      Eigen::Matrix<double, 3, 3> R_GtoI = state->_clones_IMU.at(f.second->_anchor_clone_timestamp).first->Rot();
+      Eigen::Matrix<double, 3, 1> p_IinG = state->_clones_IMU.at(f.second->_anchor_clone_timestamp).first->pos();
       // Feature in the global frame
       slam_feats.push_back(R_GtoI.transpose() * R_ItoC.transpose() * (f.second->get_xyz(false) - p_IinC) + p_IinG);
     } else {
@@ -451,8 +451,8 @@ std::vector<Eigen::Vector3d> VioManager::get_features_ARUCO() {
       Eigen::Matrix<double, 3, 3> R_ItoC = state->_calib_IMUtoCAM.at(f.second->_anchor_cam_id)->Rot();
       Eigen::Matrix<double, 3, 1> p_IinC = state->_calib_IMUtoCAM.at(f.second->_anchor_cam_id)->pos();
       // Anchor pose orientation and position
-      Eigen::Matrix<double, 3, 3> R_GtoI = state->_clones_IMU.at(f.second->_anchor_clone_timestamp)->Rot();
-      Eigen::Matrix<double, 3, 1> p_IinG = state->_clones_IMU.at(f.second->_anchor_clone_timestamp)->pos();
+      Eigen::Matrix<double, 3, 3> R_GtoI = state->_clones_IMU.at(f.second->_anchor_clone_timestamp).first->Rot();
+      Eigen::Matrix<double, 3, 1> p_IinG = state->_clones_IMU.at(f.second->_anchor_clone_timestamp).first->pos();
       // Feature in the global frame
       aruco_feats.push_back(R_GtoI.transpose() * R_ItoC.transpose() * (f.second->get_xyz(false) - p_IinC) + p_IinG);
     } else {

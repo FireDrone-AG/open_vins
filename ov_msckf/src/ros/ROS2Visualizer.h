@@ -174,7 +174,10 @@ protected:
 
   ov_core::GimbalData latest_gimbal_rot{0.0, Eigen::Matrix3d::Identity()};
   std::mutex gimbal_rot_mtx;
-
+  
+  std::deque<ov_core::GimbalData> gimbal_queue;
+  std::mutex gimbal_queue_mtx;
+  
   // For path viz
   std::vector<geometry_msgs::msg::PoseStamped> poses_imu;
 

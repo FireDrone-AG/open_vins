@@ -60,7 +60,7 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
   pub_points_aruco = node->create_publisher<sensor_msgs::msg::PointCloud2>("points_aruco", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_aruco->get_topic_name());
   pub_points_sim = node->create_publisher<sensor_msgs::msg::PointCloud2>("points_sim", 2);
-  PRINT_DEBUG("Publishing: %s\n", pub_points_sim->get_topic_name());
+  PRINT_DEBUG("testPublishing: %s\n", pub_points_sim->get_topic_name());
 
   // Our tracking image
   it_pub_tracks = it.advertise("trackhist", 2);
@@ -179,8 +179,9 @@ void ROS2Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   _node->declare_parameter<std::string>("topic_gimbal", "/gimbal0");
   _node->get_parameter("topic_gimbal", topic_gimbal);
   parser->parse_external("relative_config_imucam", "cam0", "gimbaltopic", topic_gimbal);
-  sub_gimbal = _node->create_subscription<ov_interfaces::msg::GimbalStamped>(topic_gimbal, 10, std::bind(&ROS2Visualizer::callback_gimbal, this, std::placeholders::_1));
-  PRINT_INFO("subscribing to gimbal: %s\n", topic_gimbal.c_str());
+  sub_gimbal = _node->create_subscription<ov_interfaces::msg::GimbalStamped>(topic_gimbal, 10, 
+                                                                            [this](const ov_interfaces::msg::GimbalStamped::SharedPtr msg) { callback_gimbal(msg); });
+  PRINT_INFO("subscribing to gimbal: %s\n", topic_gimbal.c_str());  
 
   // Logic for sync stereo subscriber
   // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
@@ -491,12 +492,22 @@ void ROS2Visualizer::callback_inertial(const sensor_msgs::msg::Imu::SharedPtr ms
       // Loop through our queue and see if we are able to process any of our camera measurements
       // We are able to process if we have at least one IMU measurement greater than the camera time
       double timestamp_imu_inC = message.timestamp - _app->get_state()->_calib_dt_CAMtoIMU->value()(0);
-      while (!camera_queue.empty() && camera_queue.at(0).timestamp < timestamp_imu_inC) {
+      while (!camera_queue.empty() && !gimbal_queue.empty() && camera_queue.at(0).timestamp < timestamp_imu_inC) {
         auto rT0_1 = boost::posix_time::microsec_clock::local_time();
         double update_dt = 100.0 * (timestamp_imu_inC - camera_queue.at(0).timestamp);
-        _app->feed_measurement_camera(camera_queue.at(0), latest_gimbal_rot);
+        _app->feed_measurement_camera(camera_queue.at(0), gimbal_queue.at(0));
+        _app->feed_gimbal_rot(gimbal_queue.at(0));                  // Feeds the oldest gimbal-measurement BUT still not same timestamp as camera?
         visualize();
+        PRINT_INFO(GREEN "timestamp cam: %.4f timestamp gimbal: %.4f dt: %.4f \n"  RESET, camera_queue.at(0).timestamp, gimbal_queue.at(0).timestamp, camera_queue.at(0).timestamp-gimbal_queue.at(0).timestamp);
+
+        std::stringstream ss;
+        ss << "\n" << gimbal_queue.at(0).R;
+
+        PRINT_INFO(MAGENTA "GIMBAL ROT FED TO VIO: %s\n" RESET, ss.str().c_str());
+
         camera_queue.pop_front();
+        gimbal_queue.pop_front();
+        gimbal_queue.clear();
         auto rT0_2 = boost::posix_time::microsec_clock::local_time();
         double time_total = (rT0_2 - rT0_1).total_microseconds() * 1e-6;
         PRINT_INFO(BLUE "[TIME]: %.4f seconds total (%.1f hz, %.2f ms behind)\n" RESET, time_total, 1.0 / time_total, update_dt);
@@ -518,7 +529,8 @@ void ROS2Visualizer::callback_gimbal(const ov_interfaces::msg::GimbalStamped::Sh
 
   latest_gimbal_rot.timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
 
-  double gimbal_deg = 180.0 - msg->data * 360.0/4095.0;
+  double gimbal_deg = (180.0 - msg->data * 360.0/4095.0);
+  // PRINT_INFO(CYAN "GIMBAL ANGLE RECEIVED: %.4f\n" RESET, gimbal_deg);
   double gimbal = gimbal_deg * M_PI / 180.0;
   
   Eigen::Matrix<double, 3, 3> R_local;
@@ -529,8 +541,14 @@ void ROS2Visualizer::callback_gimbal(const ov_interfaces::msg::GimbalStamped::Sh
   latest_gimbal_rot.R = R_local;
   }
 
-  // Send it to VIO system
-  _app->feed_gimbal_rot(latest_gimbal_rot);
+  std::stringstream ss;
+  ss << "\n" << latest_gimbal_rot.R;
+
+  PRINT_INFO(BOLDRED "GIMBAL ROT COMPUTED FROM GIMBAL POS: %s\n" RESET, ss.str().c_str());
+
+  std::lock_guard<std::mutex> lck(gimbal_queue_mtx);
+  gimbal_queue.push_back(latest_gimbal_rot);
+  std::sort(gimbal_queue.begin(), gimbal_queue.end());
 }
 
 void ROS2Visualizer::callback_monocular(const sensor_msgs::msg::Image::SharedPtr msg0, int cam_id0) {
@@ -898,13 +916,13 @@ void ROS2Visualizer::publish_loopclosure_information() {
     nav_msgs::msg::Odometry odometry_pose;
     odometry_pose.header = header;
     odometry_pose.header.frame_id = "global";
-    odometry_pose.pose.pose.position.x = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(0);
-    odometry_pose.pose.pose.position.y = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(1);
-    odometry_pose.pose.pose.position.z = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(2);
-    odometry_pose.pose.pose.orientation.x = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(0);
-    odometry_pose.pose.pose.orientation.y = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(1);
-    odometry_pose.pose.pose.orientation.z = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(2);
-    odometry_pose.pose.pose.orientation.w = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(3);
+    odometry_pose.pose.pose.position.x = _app->get_state()->_clones_IMU.at(active_tracks_time1).first->pos()(0);
+    odometry_pose.pose.pose.position.y = _app->get_state()->_clones_IMU.at(active_tracks_time1).first->pos()(1);
+    odometry_pose.pose.pose.position.z = _app->get_state()->_clones_IMU.at(active_tracks_time1).first->pos()(2);
+    odometry_pose.pose.pose.orientation.x = _app->get_state()->_clones_IMU.at(active_tracks_time1).first->quat()(0);
+    odometry_pose.pose.pose.orientation.y = _app->get_state()->_clones_IMU.at(active_tracks_time1).first->quat()(1);
+    odometry_pose.pose.pose.orientation.z = _app->get_state()->_clones_IMU.at(active_tracks_time1).first->quat()(2);
+    odometry_pose.pose.pose.orientation.w = _app->get_state()->_clones_IMU.at(active_tracks_time1).first->quat()(3);
     pub_loop_pose->publish(odometry_pose);
 
     // PUBLISH IMU TO CAMERA0 EXTRINSIC

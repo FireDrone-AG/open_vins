@@ -227,7 +227,7 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
   if (is_initialized_vio && updaterZUPT != nullptr && (!params.zupt_only_at_beginning || !has_moved_since_zupt)) {
     // If the same state time, use the previous timestep decision
     if (state->_timestamp != timestamp) {
-      did_zupt_update = updaterZUPT->try_update(state, timestamp);
+      did_zupt_update = updaterZUPT->try_update(state, timestamp, gimbal_message);
     }
     if (did_zupt_update) {
       assert(state->_timestamp == timestamp);
@@ -300,7 +300,7 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
   if (is_initialized_vio && updaterZUPT != nullptr && (!params.zupt_only_at_beginning || !has_moved_since_zupt)) {
     // If the same state time, use the previous timestep decision
     if (state->_timestamp != message.timestamp) {
-      did_zupt_update = updaterZUPT->try_update(state, message.timestamp);
+      did_zupt_update = updaterZUPT->try_update(state, message.timestamp, gimbal_message);
     }
     if (did_zupt_update) {
       assert(state->_timestamp == message.timestamp);
@@ -314,7 +314,7 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
   // If we do not have VIO initialization, then try to initialize
   // TODO: Or if we are trying to reset the system, then do that here!
   if (!is_initialized_vio) {
-    is_initialized_vio = try_to_initialize(message);
+    is_initialized_vio = try_to_initialize(message, gimbal_message);
     if (!is_initialized_vio) {
       double time_track = (rT2 - rT1).total_microseconds() * 1e-6;
       PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for tracking\n" RESET, time_track);
@@ -323,6 +323,12 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
   }
 
   // Call on our propagate and update function
+
+  std::stringstream ss;
+  ss << "\n" << gimbal_message.R;
+
+  PRINT_INFO(RED "GIMBAL ROT USED BY track_image_and_update: %s\n" RESET, ss.str().c_str());
+
   do_feature_propagate_update(message, gimbal_message);
 }
 
@@ -344,7 +350,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message,
   // NOTE: if the state is already at the given time (can happen in sim)
   // NOTE: then no need to prop since we already are at the desired timestep
   if (state->_timestamp != message.timestamp) {
-    propagator->propagate_and_clone(state, message.timestamp);
+    propagator->propagate_and_clone(state, message.timestamp, gimbal_message);
   }
   rT3 = boost::posix_time::microsec_clock::local_time();
 
@@ -651,7 +657,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message,
 
   // Update our distance traveled
   if (timelastupdate != -1 && state->_clones_IMU.find(timelastupdate) != state->_clones_IMU.end()) {
-    Eigen::Matrix<double, 3, 1> dx = state->_imu->pos() - state->_clones_IMU.at(timelastupdate)->pos();
+    Eigen::Matrix<double, 3, 1> dx = state->_imu->pos() - state->_clones_IMU.at(timelastupdate).first->pos();
     distance += dx.norm();
   }
   timelastupdate = message.timestamp;

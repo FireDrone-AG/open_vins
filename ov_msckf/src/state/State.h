@@ -36,6 +36,8 @@
 #include "types/Type.h"
 #include "types/Vec.h"
 
+#include <Eigen/Eigen>
+
 namespace ov_msckf {
 
 /**
@@ -147,7 +149,7 @@ public:
   std::shared_ptr<ov_type::IMU> _imu;
 
   /// Map between imaging times and clone poses (q_GtoIi, p_IiinG)
-  std::map<double, std::shared_ptr<ov_type::PoseJPL>> _clones_IMU;
+  std::map<double, std::pair<std::shared_ptr<ov_type::PoseJPL>, std::shared_ptr<ov_type::PoseJPL>>> _clones_IMU;
 
   /// Our current set of SLAM features (3d positions)
   std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> _features_SLAM;

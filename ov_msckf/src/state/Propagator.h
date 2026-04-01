@@ -73,6 +73,14 @@ public:
     clean_old_imu_measurements(oldest_time - 0.10);
   }
 
+  void feed_gimbal(const ov_core::GimbalData &message) {
+
+  // replace with newest value
+  std::lock_guard<std::mutex> lck(gimbal_rot_mtx);
+  gimbal_rot = message;
+  
+  }
+
   /**
    * @brief This will remove any IMU measurements that are older then the given measurement time
    * @param oldest_time Time that we can discard measurements before (in IMU clock)
@@ -107,7 +115,7 @@ public:
    * @param state Pointer to state
    * @param timestamp Time to propagate to and clone at (CAM clock frame)
    */
-  void propagate_and_clone(std::shared_ptr<State> state, double timestamp);
+  void propagate_and_clone(std::shared_ptr<State> state, double timestamp, const ov_core::GimbalData &gimbal_message);
 
   /**
    * @brief Gets what the state and its covariance will be at a given timestamp
@@ -438,6 +446,9 @@ protected:
   std::vector<ov_core::ImuData> imu_data;
   std::mutex imu_data_mtx;
 
+  ov_core::GimbalData gimbal_rot{0.0, Eigen::Matrix3d::Identity()};
+  std::mutex gimbal_rot_mtx;
+
   /// Gravity vector
   Eigen::Vector3d _gravity;
 
@@ -451,6 +462,8 @@ protected:
   Eigen::MatrixXd cache_state_est;
   Eigen::MatrixXd cache_state_covariance;
   double cache_t_off;
+
+
 };
 
 } // namespace ov_msckf

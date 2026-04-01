@@ -30,7 +30,7 @@ using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
 
-void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timestamp) {
+void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timestamp, const ov_core::GimbalData &gimbal_message) {
 
   // If the difference between the current update time and state is zero
   // We should crash, as this means we would have two clones at the same time!!!!
@@ -134,7 +134,7 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
   last_prop_time_offset = t_off_new;
 
   // Now perform stochastic cloning
-  StateHelper::augment_clone(state, last_w);
+  StateHelper::augment_clone(state, last_w, gimbal_message);
 }
 
 bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus,

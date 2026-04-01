@@ -1,0 +1,116 @@
+[0.009s] Invoking command in '/home/boris/workspace/ov_fork/src/open_vins/build/ov_msckf': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/boris/workspace/ov_fork/install/imu_converter:/opt/ros/humble /usr/bin/cmake /home/boris/workspace/ov_fork/src/open_vins/ov_msckf -DCMAKE_INSTALL_PREFIX=/home/boris/workspace/ov_fork/src/open_vins/install/ov_msckf
+[0.096s] -- The C compiler identification is GNU 11.4.0
+[0.134s] -- The CXX compiler identification is GNU 11.4.0
+[0.141s] -- Detecting C compiler ABI info
+[0.193s] -- Detecting C compiler ABI info - done
+[0.198s] -- Check for working C compiler: /usr/bin/cc - skipped
+[0.198s] -- Detecting C compile features
+[0.199s] -- Detecting C compile features - done
+[0.201s] -- Detecting CXX compiler ABI info
+[0.258s] -- Detecting CXX compiler ABI info - done
+[0.262s] -- Check for working CXX compiler: /usr/bin/c++ - skipped
+[0.262s] -- Detecting CXX compile features
+[0.263s] -- Detecting CXX compile features - done
+[0.293s] -- Found OpenCV: /usr (found suitable version "4.5.4", minimum required is "4") 
+[0.440s] -- Found Boost: /usr/lib/x86_64-linux-gnu/cmake/Boost-1.74.0/BoostConfig.cmake (found version "1.74.0") found components: system filesystem thread date_time 
+[0.445s] -- Found Threads: TRUE  
+[0.446s] -- Found required Ceres dependency: Eigen version 3.4.0 in /usr/include/eigen3
+[0.452s] -- Found required Ceres dependency: glog
+[0.452s] -- Found required Ceres dependency: gflags
+[0.452s] -- Found Ceres version: 2.0.0 installed in: /usr with components: [EigenSparse, SparseLinearAlgebraLibrary, LAPACK, SuiteSparse, CXSparse, SchurSpecializations, Multithreading]
+[0.452s] -- OPENCV: 4.5.4 | BOOST: 1.74.0 | CERES: 2.0.0
+[0.567s] -- Found Python3: /usr/bin/python3 (found version "3.10.12") found components: Interpreter 
+[0.639s] -- ROS *2* version found, building ROS2.cmake
+[0.643s] -- Found rclcpp: 16.0.18 (/opt/ros/humble/share/rclcpp/cmake)
+[0.680s] -- Found rosidl_generator_c: 3.1.8 (/opt/ros/humble/share/rosidl_generator_c/cmake)
+[0.685s] -- Found rosidl_adapter: 3.1.8 (/opt/ros/humble/share/rosidl_adapter/cmake)
+[0.692s] -- Found rosidl_generator_cpp: 3.1.8 (/opt/ros/humble/share/rosidl_generator_cpp/cmake)
+[0.703s] -- Using all available rosidl_typesupport_c: rosidl_typesupport_fastrtps_c;rosidl_typesupport_introspection_c
+[0.719s] -- Using all available rosidl_typesupport_cpp: rosidl_typesupport_fastrtps_cpp;rosidl_typesupport_introspection_cpp
+[0.758s] -- Found rmw_implementation_cmake: 6.1.2 (/opt/ros/humble/share/rmw_implementation_cmake/cmake)
+[0.762s] -- Found rmw_fastrtps_cpp: 6.2.10 (/opt/ros/humble/share/rmw_fastrtps_cpp/cmake)
+[0.842s] -- Found OpenSSL: /usr/lib/x86_64-linux-gnu/libcrypto.so (found version "3.0.2")  
+[0.861s] -- Found FastRTPS: /opt/ros/humble/include  
+[0.890s] -- Using RMW implementation 'rmw_fastrtps_cpp' as default
+[0.938s] -- Found tf2_ros: 0.25.19 (/opt/ros/humble/share/tf2_ros/cmake)
+[1.038s] -- Found tf2_geometry_msgs: 0.25.19 (/opt/ros/humble/share/tf2_geometry_msgs/cmake)
+[1.046s] -- Found eigen3_cmake_module: 0.1.1 (/opt/ros/humble/share/eigen3_cmake_module/cmake)
+[1.047s] -- Found Eigen3: TRUE (found version "3.4.0") 
+[1.047s] -- Ensuring Eigen3 include directory is part of orocos-kdl CMake target
+[1.050s] -- Found sensor_msgs: 4.9.1 (/opt/ros/humble/share/sensor_msgs/cmake)
+[1.063s] -- Found nav_msgs: 4.9.1 (/opt/ros/humble/share/nav_msgs/cmake)
+[1.075s] -- Found cv_bridge: 3.2.1 (/opt/ros/humble/share/cv_bridge/cmake)
+[1.078s] -- Found image_transport: 3.1.12 (/opt/ros/humble/share/image_transport/cmake)
+[1.095s] -- Found ov_core: 2.7.0 (/home/boris/workspace/ov_fork/install/ov_core/share/ov_core/cmake)
+[1.096s] -- Found ov_init: 2.7.0 (/home/boris/workspace/ov_fork/install/ov_init/share/ov_init/cmake)
+[1.097s] -- Found ov_interfaces: 0.0.0 (/home/boris/workspace/ov_fork/install/ov_interfaces/share/ov_interfaces/cmake)
+[1.198s] -- Configuring done
+[1.235s] -- Generating done
+[1.245s] -- Build files have been written to: /home/boris/workspace/ov_fork/src/open_vins/build/ov_msckf
+[1.252s] Invoked command in '/home/boris/workspace/ov_fork/src/open_vins/build/ov_msckf' returned '0': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/boris/workspace/ov_fork/install/imu_converter:/opt/ros/humble /usr/bin/cmake /home/boris/workspace/ov_fork/src/open_vins/ov_msckf -DCMAKE_INSTALL_PREFIX=/home/boris/workspace/ov_fork/src/open_vins/install/ov_msckf
+[1.253s] Invoking command in '/home/boris/workspace/ov_fork/src/open_vins/build/ov_msckf': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/boris/workspace/ov_fork/install/imu_converter:/opt/ros/humble /usr/bin/cmake --build /home/boris/workspace/ov_fork/src/open_vins/build/ov_msckf
+[1.294s] [  4%] [32mBuilding CXX object CMakeFiles/ov_msckf_lib.dir/src/sim/Simulator.cpp.o[0m
+[1.295s] [  9%] [32mBuilding CXX object CMakeFiles/ov_msckf_lib.dir/src/state/State.cpp.o[0m
+[1.295s] [ 13%] [32mBuilding CXX object CMakeFiles/ov_msckf_lib.dir/src/dummy.cpp.o[0m
+[1.313s] [ 18%] [32mBuilding CXX object CMakeFiles/ov_msckf_lib.dir/src/state/StateHelper.cpp.o[0m
+[4.535s] In file included from [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/State.cpp:22[m[K:
+[4.535s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/State.h:152:99:[m[K [01;31m[Kerror: [m[Kexpected unqualified-id before ‘[01m[K>[m[K’ token
+[4.535s]   152 |   std::map<double, std::pair<std::shared_ptr<ov_type::PoseJPL>, std::shared_ptr<ov_type::PoseJPL>>[01;31m[K>>[m[K _clones_IMU;
+[4.535s]       |                                                                                                   [01;31m[K^~[m[K
+[4.887s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/State.h:[m[K In member function ‘[01m[Kdouble ov_msckf::State::margtimestep()[m[K’:
+[4.888s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/State.h:71:34:[m[K [01;31m[Kerror: [m[K‘[01m[K_clones_IMU[m[K’ was not declared in this scope; did you mean ‘[01m[Kclone_imu[m[K’?
+[4.888s]    71 |     for (const auto &clone_imu : [01;31m[K_clones_IMU[m[K) {
+[4.888s]       |                                  [01;31m[K^~~~~~~~~~~[m[K
+[4.888s]       |                                  [32m[Kclone_imu[m[K
+[5.205s] In file included from [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:24[m[K:
+[5.205s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/State.h:152:99:[m[K [01;31m[Kerror: [m[Kexpected unqualified-id before ‘[01m[K>[m[K’ token
+[5.205s]   152 | ed_ptr<ov_type::PoseJPL>, std::shared_ptr<ov_type::PoseJPL>>[01;31m[K>>[m[K _clones_IMU;
+[5.205s]       |                                                             [01;31m[K^~[m[K
+[5.205s] 
+[5.241s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/State.h:[m[K In member function ‘[01m[Kdouble ov_msckf::State::margtimestep()[m[K’:
+[5.241s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/State.h:71:34:[m[K [01;31m[Kerror: [m[K‘[01m[K_clones_IMU[m[K’ was not declared in this scope; did you mean ‘[01m[Kclone_imu[m[K’?
+[5.241s]    71 |     for (const auto &clone_imu : [01;31m[K_clones_IMU[m[K) {
+[5.241s]       |                                  [01;31m[K^~~~~~~~~~~[m[K
+[5.241s]       |                                  [32m[Kclone_imu[m[K
+[5.653s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:[m[K In static member function ‘[01m[Kstatic void ov_msckf::StateHelper::augment_clone(std::shared_ptr<ov_msckf::State>, Eigen::Matrix<double, 3, 1>, const ov_core::GimbalData&)[m[K’:
+[5.653s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:584:14:[m[K [01;31m[Kerror: [m[K‘[01m[Kusing element_type = class ov_msckf::State[m[K’ {aka ‘[01m[Kclass ov_msckf::State[m[K’} has no member named ‘[01m[K_clones_IMU[m[K’
+[5.653s]   584 |   if (state->[01;31m[K_clones_IMU[m[K.find(state->_timestamp) != state->_clones_IMU.end()) {
+[5.653s]       |              [01;31m[K^~~~~~~~~~~[m[K
+[5.654s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:584:60:[m[K [01;31m[Kerror: [m[K‘[01m[Kusing element_type = class ov_msckf::State[m[K’ {aka ‘[01m[Kclass ov_msckf::State[m[K’} has no member named ‘[01m[K_clones_IMU[m[K’
+[5.654s]   584 |   if (state->_clones_IMU.find(state->_timestamp) != state->[01;31m[K_clones_IMU[m[K.end()) {
+[5.654s]       |                                                            [01;31m[K^~~~~~~~~~~[m[K
+[5.654s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:605:52:[m[K [01;31m[Kerror: [m[Kexpected primary-expression before ‘[01m[K)[m[K’ token
+[5.654s]   605 |   auto gimbal_rot_ptr = std::make_shared<PoseJPL>>([01;31m[K)[m[K;
+[5.654s]       |                                                    [01;31m[K^[m[K
+[5.654s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:610:10:[m[K [01;31m[Kerror: [m[K‘[01m[Kusing element_type = class ov_msckf::State[m[K’ {aka ‘[01m[Kclass ov_msckf::State[m[K’} has no member named ‘[01m[K_clones_IMU[m[K’
+[5.654s]   610 |   state->[01;31m[K_clones_IMU[m[K[state->_timestamp] = {pose, gimbal_rot_ptr};  // TODO: gimbal rotation at that clone time
+[5.654s]       |          [01;31m[K^~~~~~~~~~~[m[K
+[5.685s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:[m[K In static member function ‘[01m[Kstatic void ov_msckf::StateHelper::marginalize_old_clone(std::shared_ptr<ov_msckf::State>)[m[K’:
+[5.685s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:630:19:[m[K [01;31m[Kerror: [m[K‘[01m[Kusing element_type = class ov_msckf::State[m[K’ {aka ‘[01m[Kclass ov_msckf::State[m[K’} has no member named ‘[01m[K_clones_IMU[m[K’
+[5.685s]   630 |   if ((int)state->[01;31m[K_clones_IMU[m[K.size() > state->_options.max_clone_size) {
+[5.685s]       |                   [01;31m[K^~~~~~~~~~~[m[K
+[5.685s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:635:44:[m[K [01;31m[Kerror: [m[K‘[01m[Kusing element_type = class ov_msckf::State[m[K’ {aka ‘[01m[Kclass ov_msckf::State[m[K’} has no member named ‘[01m[K_clones_IMU[m[K’
+[5.685s]   635 |     StateHelper::marginalize(state, state->[01;31m[K_clones_IMU[m[K.at(marginal_time).first);
+[5.685s]       |                                            [01;31m[K^~~~~~~~~~~[m[K
+[5.686s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:636:44:[m[K [01;31m[Kerror: [m[K‘[01m[Kusing element_type = class ov_msckf::State[m[K’ {aka ‘[01m[Kclass ov_msckf::State[m[K’} has no member named ‘[01m[K_clones_IMU[m[K’
+[5.686s]   636 |     StateHelper::marginalize(state, state->[01;31m[K_clones_IMU[m[K.at(marginal_time).second);
+[5.686s]       |                                            [01;31m[K^~~~~~~~~~~[m[K
+[5.686s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/StateHelper.cpp:639:12:[m[K [01;31m[Kerror: [m[K‘[01m[Kusing element_type = class ov_msckf::State[m[K’ {aka ‘[01m[Kclass ov_msckf::State[m[K’} has no member named ‘[01m[K_clones_IMU[m[K’
+[5.686s]   639 |     state->[01;31m[K_clones_IMU[m[K.erase(marginal_time);
+[5.686s]       |            [01;31m[K^~~~~~~~~~~[m[K
+[5.836s] In file included from [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/sim/Simulator.cpp:28[m[K:
+[5.836s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/State.h:152:99:[m[K [01;31m[Kerror: [m[Kexpected unqualified-id before ‘[01m[K>[m[K’ token
+[5.836s]   152 |   std::map<double, std::pair<std::shared_ptr<ov_type::PoseJPL>, std::shared_ptr<ov_type::PoseJPL>>[01;31m[K>>[m[K _clones_IMU;
+[5.836s]       |                                                                                                   [01;31m[K^~[m[K
+[5.872s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/State.h:[m[K In member function ‘[01m[Kdouble ov_msckf::State::margtimestep()[m[K’:
+[5.872s] [01m[K/home/boris/workspace/ov_fork/src/open_vins/ov_msckf/src/state/State.h:71:34:[m[K [01;31m[Kerror: [m[K‘[01m[K_clones_IMU[m[K’ was not declared in this scope; did you mean ‘[01m[Kclone_imu[m[K’?
+[5.872s]    71 |     for (const auto &clone_imu : [01;31m[K_clones_IMU[m[K) {
+[5.872s]       |                                  [01;31m[K^~~~~~~~~~~[m[K
+[5.872s]       |                                  [32m[Kclone_imu[m[K
+[6.365s] gmake[2]: *** [CMakeFiles/ov_msckf_lib.dir/build.make:104: CMakeFiles/ov_msckf_lib.dir/src/state/State.cpp.o] Error 1
+[6.365s] gmake[2]: *** Waiting for unfinished jobs....
+[11.292s] gmake[2]: *** [CMakeFiles/ov_msckf_lib.dir/build.make:118: CMakeFiles/ov_msckf_lib.dir/src/state/StateHelper.cpp.o] Error 1
+[11.786s] gmake[2]: *** [CMakeFiles/ov_msckf_lib.dir/build.make:90: CMakeFiles/ov_msckf_lib.dir/src/sim/Simulator.cpp.o] Error 1
+[11.786s] gmake[1]: *** [CMakeFiles/Makefile2:145: CMakeFiles/ov_msckf_lib.dir/all] Error 2
+[11.786s] gmake: *** [Makefile:146: all] Error 2
+[11.788s] Invoked command in '/home/boris/workspace/ov_fork/src/open_vins/build/ov_msckf' returned '2': CMAKE_PREFIX_PATH=${CMAKE_PREFIX_PATH}:/home/boris/workspace/ov_fork/install/imu_converter:/opt/ros/humble /usr/bin/cmake --build /home/boris/workspace/ov_fork/src/open_vins/build/ov_msckf

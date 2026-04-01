@@ -62,7 +62,7 @@ UpdaterZeroVelocity::UpdaterZeroVelocity(UpdaterOptions &options, NoiseManager &
   }
 }
 
-bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timestamp) {
+bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timestamp, const ov_core::GimbalData &gimbal_message) {
 
   // Return if we don't have any imu data yet
   if (imu_data.empty()) {
@@ -281,7 +281,7 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     // Propagate the state forward in time
     double time0_cam = last_zupt_state_timestamp;
     double time1_cam = timestamp;
-    _prop->propagate_and_clone(state, time1_cam);
+    _prop->propagate_and_clone(state, time1_cam, gimbal_message);
 
     // Create the update system!
     H = Eigen::MatrixXd::Zero(9, 15);
@@ -289,10 +289,10 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     R = Eigen::MatrixXd::Identity(9, 9);
 
     // residual (order is ori, pos, vel)
-    Eigen::Matrix3d R_GtoI0 = state->_clones_IMU.at(time0_cam)->Rot();
-    Eigen::Vector3d p_I0inG = state->_clones_IMU.at(time0_cam)->pos();
-    Eigen::Matrix3d R_GtoI1 = state->_clones_IMU.at(time1_cam)->Rot();
-    Eigen::Vector3d p_I1inG = state->_clones_IMU.at(time1_cam)->pos();
+    Eigen::Matrix3d R_GtoI0 = state->_clones_IMU.at(time0_cam).first->Rot();
+    Eigen::Vector3d p_I0inG = state->_clones_IMU.at(time0_cam).first->pos();
+    Eigen::Matrix3d R_GtoI1 = state->_clones_IMU.at(time1_cam).first->Rot();
+    Eigen::Vector3d p_I1inG = state->_clones_IMU.at(time1_cam).first->pos();
     res.block(0, 0, 3, 1) = -log_so3(R_GtoI0 * R_GtoI1.transpose());
     res.block(3, 0, 3, 1) = p_I1inG - p_I0inG;
     res.block(6, 0, 3, 1) = state->_imu->vel();
@@ -300,11 +300,11 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
 
     // jacobian (order is q0, p0, q1, p1, v0)
     Hx_order.clear();
-    Hx_order.push_back(state->_clones_IMU.at(time0_cam));
-    Hx_order.push_back(state->_clones_IMU.at(time1_cam));
+    Hx_order.push_back(state->_clones_IMU.at(time0_cam).first);
+    Hx_order.push_back(state->_clones_IMU.at(time1_cam).first);
     Hx_order.push_back(state->_imu->v());
     if (state->_options.do_fej) {
-      R_GtoI0 = state->_clones_IMU.at(time0_cam)->Rot_fej();
+      R_GtoI0 = state->_clones_IMU.at(time0_cam).first->Rot_fej();
     }
     H.block(0, 0, 3, 3) = Eigen::Matrix3d::Identity();
     H.block(0, 6, 3, 3) = -R_GtoI0;
@@ -319,7 +319,8 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
 
     // finally update and remove the old clone
     StateHelper::EKFUpdate(state, Hx_order, H, res, R);
-    StateHelper::marginalize(state, state->_clones_IMU.at(time1_cam));
+    StateHelper::marginalize(state, state->_clones_IMU.at(time1_cam).first);
+    StateHelper::marginalize(state, state->_clones_IMU.at(time1_cam).second);
     state->_clones_IMU.erase(time1_cam);
   }
 
