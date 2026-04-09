@@ -82,7 +82,7 @@ bool VioManager::try_to_initialize(const ov_core::CameraData &message, const ov_
   // And are using this queue to propagate the state forward. We should wait in this case
   if (thread_init_running) {
     std::lock_guard<std::mutex> lck(camera_queue_init_mtx);
-    camera_queue_init.push_back(message.timestamp);
+    camera_queue_init.push_back({message.timestamp, gimbal_message});
     return false;
   }
 
@@ -93,7 +93,7 @@ bool VioManager::try_to_initialize(const ov_core::CameraData &message, const ov_
 
   // Run the initialization in a second thread so it can go as slow as it desires
   thread_init_running = true;
-  std::thread thread([&] {
+  std::thread thread([this] {
     // Returns from our initializer
     double timestamp;
     Eigen::MatrixXd covariance;
@@ -146,19 +146,23 @@ bool VioManager::try_to_initialize(const ov_core::CameraData &message, const ov_
       // Remove any camera times that are order then the initialized time
       // This can happen if the initialization has taken a while to perform
       std::lock_guard<std::mutex> lck(camera_queue_init_mtx);
-      std::vector<double> camera_timestamps_to_init;
+      std::vector<std::pair<double, ov_core::GimbalData>> camera_timestamps_to_init;
       for (size_t i = 0; i < camera_queue_init.size(); i++) {
-        if (camera_queue_init.at(i) > timestamp) {
+        if (camera_queue_init.at(i).first > timestamp) {
           camera_timestamps_to_init.push_back(camera_queue_init.at(i));
         }
       }
 
+      std::sort(camera_timestamps_to_init.begin(), camera_timestamps_to_init.end(),
+                [](const std::pair<double, ov_core::GimbalData> &a, const std::pair<double, ov_core::GimbalData> &b) {
+                  return a.first < b.first;
+                });
       // Now we have initialized we will propagate the state to the current timestep
       // In general this should be ok as long as the initialization didn't take too long to perform
       // Propagating over multiple seconds will become an issue if the initial biases are bad
       size_t clone_rate = (size_t)((double)camera_timestamps_to_init.size() / (double)params.state_options.max_clone_size) + 1;
       for (size_t i = 0; i < camera_timestamps_to_init.size(); i += clone_rate) {
-        propagator->propagate_and_clone(state, camera_timestamps_to_init.at(i), gimbal_message);
+        propagator->propagate_and_clone(state, camera_timestamps_to_init.at(i).first, camera_timestamps_to_init.at(i).second);
         StateHelper::marginalize_old_clone(state);
       }
       PRINT_DEBUG(YELLOW "[init]: moved the state forward %.2f seconds\n" RESET, state->_timestamp - timestamp);

@@ -210,7 +210,7 @@ protected:
 
   /// This is the queue of measurement times that have come in since we starting doing initialization
   /// After we initialize, we will want to prop & update to the latest timestamp quickly
-  std::vector<double> camera_queue_init;
+  std::vector<std::pair<double, ov_core::GimbalData>> camera_queue_init;
   std::mutex camera_queue_init_mtx;
 
   // Timing statistic file and variables
