@@ -79,7 +79,8 @@ void UpdaterHelper::get_feature_jacobian_representation(std::shared_ptr<State> s
 
   // Anchor pose orientation and position, and camera calibration for our anchor camera
 
-  Eigen::Matrix3d R_ItoC = gimbal_message.R * state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
+  // Eigen::Matrix3d R_ItoC = gimbal_message.R * state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
+  Eigen::Matrix3d R_ItoC = state->_clones_IMU.at(feature.anchor_clone_timestamp).second->Rot() * state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
   Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->pos();
   Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feature.anchor_clone_timestamp).first->Rot();
   Eigen::Vector3d p_IinG = state->_clones_IMU.at(feature.anchor_clone_timestamp).first->pos();
@@ -272,7 +273,8 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
     assert(feature.anchor_cam_id != -1);
     // Get calibration for our anchor camera
 
-    Eigen::Matrix3d R_ItoC = gimbal_message_rot.R * state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
+    // Eigen::Matrix3d R_ItoC = gimbal_message_rot.R * state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
+    Eigen::Matrix3d R_ItoC = state->_clones_IMU.at(feature.anchor_clone_timestamp).second->Rot() * state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->Rot();
     Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(feature.anchor_cam_id)->pos();
     // Anchor pose orientation and position
     Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feature.anchor_clone_timestamp).first->Rot();
@@ -319,7 +321,8 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
     
     std::shared_ptr<Vec> distortion = state->_cam_intrinsics.at(pair.first);
     std::shared_ptr<PoseJPL> calibration = state->_calib_IMUtoCAM.at(pair.first);
-    Eigen::Matrix3d R_ItoC = gimbal_message_rot.R * calibration->Rot();
+    // Eigen::Matrix3d R_ItoC = gimbal_message_rot.R * calibration->Rot();
+    Eigen::Matrix3d R_ItoC = calibration->Rot();
     Eigen::Vector3d p_IinC = calibration->pos();
 
     // Loop through all measurements for this specific camera
@@ -337,7 +340,7 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
       Eigen::Vector3d p_FinIi = R_GtoIi * (p_FinG - p_IiinG);
 
       // Project the current feature into the current frame of reference
-      Eigen::Vector3d p_FinCi = R_ItoC * p_FinIi + p_IinC;
+      Eigen::Vector3d p_FinCi = state->_clones_IMU.at(feature.timestamps[pair.first].at(m)).second->Rot() * R_ItoC * p_FinIi + p_IinC;
       Eigen::Vector2d uv_norm;
       uv_norm << p_FinCi(0) / p_FinCi(2), p_FinCi(1) / p_FinCi(2);
 
