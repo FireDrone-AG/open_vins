@@ -333,6 +333,9 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
 
       // Get current IMU clone state
       std::shared_ptr<PoseJPL> clone_Ii = state->_clones_IMU.at(feature.timestamps[pair.first].at(m)).first;
+      double clone_ts = feature.timestamps[pair.first].at(m);
+
+      Eigen::Matrix3d R_gimbal = state->_clones_IMU.at(clone_ts).second->Rot();
       Eigen::Matrix3d R_GtoIi = clone_Ii->Rot();
       Eigen::Vector3d p_IiinG = clone_Ii->pos();
 
@@ -340,7 +343,7 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
       Eigen::Vector3d p_FinIi = R_GtoIi * (p_FinG - p_IiinG);
 
       // Project the current feature into the current frame of reference
-      Eigen::Vector3d p_FinCi = state->_clones_IMU.at(feature.timestamps[pair.first].at(m)).second->Rot() * R_ItoC * p_FinIi + p_IinC;
+      Eigen::Vector3d p_FinCi = R_gimbal * R_ItoC * p_FinIi + p_IinC;
       Eigen::Vector2d uv_norm;
       uv_norm << p_FinCi(0) / p_FinCi(2), p_FinCi(1) / p_FinCi(2);
 
@@ -363,8 +366,8 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
         // R_ItoC = calibration->Rot_fej();
         // p_IinC = calibration->pos_fej();
         p_FinIi = R_GtoIi * (p_FinG_fej - p_IiinG);
-        p_FinCi = R_ItoC * p_FinIi + p_IinC;
-        // uv_norm << p_FinCi(0)/p_FinCi(2),p_FinCi(1)/p_FinCi(2);
+        p_FinCi = R_gimbal * R_ItoC * p_FinIi + p_IinC;
+        uv_norm << p_FinCi(0)/p_FinCi(2),p_FinCi(1)/p_FinCi(2);
         // cam_d = state->get_intrinsics_CAM(pair.first)->fej();
       }
 
@@ -377,11 +380,11 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
       dzn_dpfc << 1 / p_FinCi(2), 0, -p_FinCi(0) / (p_FinCi(2) * p_FinCi(2)), 0, 1 / p_FinCi(2), -p_FinCi(1) / (p_FinCi(2) * p_FinCi(2));
 
       // Derivative of p_FinCi in respect to p_FinIi
-      Eigen::MatrixXd dpfc_dpfg = R_ItoC * R_GtoIi;
+      Eigen::MatrixXd dpfc_dpfg = R_gimbal * R_ItoC * R_GtoIi;
 
       // Derivative of p_FinCi in respect to camera clone state
       Eigen::MatrixXd dpfc_dclone = Eigen::MatrixXd::Zero(3, 6);
-      dpfc_dclone.block(0, 0, 3, 3).noalias() = R_ItoC * skew_x(p_FinIi);
+      dpfc_dclone.block(0, 0, 3, 3).noalias() = R_gimbal * R_ItoC * skew_x(p_FinIi);
       dpfc_dclone.block(0, 3, 3, 3) = -dpfc_dpfg;
 
       //=========================================================================

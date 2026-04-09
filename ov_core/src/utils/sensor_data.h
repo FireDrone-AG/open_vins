@@ -80,9 +80,9 @@ struct CameraData {
 
 struct GimbalData {
 
-  double timestamp;
+  double timestamp = 0.0;
 
-  Eigen::Matrix<double, 3, 3> R;
+  Eigen::Matrix<double, 3, 3> R = Eigen::Matrix3d::Identity();
 
     bool operator<(const GimbalData &other) const {
     // if (timestamp == other.timestamp) {

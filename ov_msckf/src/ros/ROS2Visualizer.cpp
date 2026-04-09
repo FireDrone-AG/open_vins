@@ -518,8 +518,9 @@ void ROS2Visualizer::callback_inertial(const sensor_msgs::msg::Imu::SharedPtr ms
         }
         
         // for ( size_t i = 0; )
+        _app->feed_gimbal_rot(gimbal_queue.at(closest_gimbalmsg));
         _app->feed_measurement_camera(camera_queue.at(0), gimbal_queue.at(closest_gimbalmsg));
-        _app->feed_gimbal_rot(gimbal_queue.at(closest_gimbalmsg));                  // Feeds the oldest gimbal-measurement BUT still not same timestamp as camera?
+        // _app->feed_gimbal_rot(gimbal_queue.at(closest_gimbalmsg));                  // Feeds the oldest gimbal-measurement BUT still not same timestamp as camera?
         visualize();
         
         double now = _node->now().seconds();
