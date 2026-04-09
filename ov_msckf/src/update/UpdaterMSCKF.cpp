@@ -105,10 +105,10 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     std::unordered_map<double, FeatureInitializer::ClonePose> clones_cami;
     for (const auto &clone_imu : state->_clones_IMU) {
 
-      std::stringstream ss;
-      ss << "\n" << clone_imu.second.second->Rot();
+      // std::stringstream ss;
+      // ss << "\n" << clone_imu.second.second->Rot();
 
-      PRINT_INFO(REDPURPLE "GIMBAL ROT USED FOR CAMERA-CLONES: %s\n" RESET, ss.str().c_str());
+      // PRINT_INFO(REDPURPLE "GIMBAL ROT USED FOR CAMERA-CLONES: %s\n" RESET, ss.str().c_str());
 
       // Get current camera pose
       Eigen::Matrix<double, 3, 3> R_GtoCi = clone_imu.second.second->Rot() * clone_calib.second->Rot() * clone_imu.second.first->Rot();

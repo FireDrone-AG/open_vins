@@ -112,8 +112,8 @@ use_mask: false
 
 # imu and camera spacial-temporal
 # imu config should also have the correct noise valuesimu_cam_calib_ros1-imu.yaml
-relative_config_imu: "imucamcalib_ros1_v3-imu.yaml"
-relative_config_imucam: "imucamcalib_ros1_v3-camchain-imucam.yaml"
+relative_config_imu: "imucamcalib_200hz_ros1-imu.yaml"
+relative_config_imucam: "imucamcalib_200hz_ros1-camchain-imucam.yaml"
 
 
 

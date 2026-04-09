@@ -324,10 +324,10 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
 
   // Call on our propagate and update function
 
-  std::stringstream ss;
-  ss << "\n" << gimbal_message.R;
+  // std::stringstream ss;
+  // ss << "\n" << gimbal_message.R;
 
-  PRINT_INFO(RED "GIMBAL ROT USED BY track_image_and_update: %s\n" RESET, ss.str().c_str());
+  PRINT_INFO(RED "GIMBAL ROT USED BY track_image_and_update: %.4f\n" RESET, gimbal_message.timestamp);
 
   do_feature_propagate_update(message, gimbal_message);
 }

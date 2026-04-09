@@ -475,7 +475,8 @@ void ROS2Visualizer::callback_inertial(const sensor_msgs::msg::Imu::SharedPtr ms
   thread_update_running = true;
   std::thread thread([&] {
     // Lock on the queue (prevents new images from appending)
-    std::lock_guard<std::mutex> lck(camera_queue_mtx);
+    // std::lock_guard<std::mutex> lck(camera_queue_mtx, gimbal_queue_mtx);
+    std::scoped_lock lock(camera_queue_mtx, gimbal_queue_mtx);
 
     // Count how many unique image streams
     std::map<int, bool> unique_cam_ids;
@@ -495,19 +496,56 @@ void ROS2Visualizer::callback_inertial(const sensor_msgs::msg::Imu::SharedPtr ms
       while (!camera_queue.empty() && !gimbal_queue.empty() && camera_queue.at(0).timestamp < timestamp_imu_inC) {
         auto rT0_1 = boost::posix_time::microsec_clock::local_time();
         double update_dt = 100.0 * (timestamp_imu_inC - camera_queue.at(0).timestamp);
-        _app->feed_measurement_camera(camera_queue.at(0), gimbal_queue.at(0));
-        _app->feed_gimbal_rot(gimbal_queue.at(0));                  // Feeds the oldest gimbal-measurement BUT still not same timestamp as camera?
+        
+        auto it = std::lower_bound(gimbal_queue.begin(), gimbal_queue.end(), camera_queue.at(0).timestamp, [](const ov_core::GimbalData &msg, double ts) {return msg.timestamp < ts;});
+
+        size_t closest_gimbalmsg = 0;
+
+        if (it == gimbal_queue.begin()) {
+          closest_gimbalmsg = 0;
+        }
+        else if (it == gimbal_queue.end()) {
+          closest_gimbalmsg = gimbal_queue.size() -1;
+        }
+        else {
+          const size_t hi = static_cast<size_t>(std::distance(gimbal_queue.begin(), it));
+          const size_t lo = hi -1;
+
+          const double dt_lo = std::abs(gimbal_queue.at(lo).timestamp - camera_queue.at(0).timestamp);
+          const double dt_hi = std::abs(gimbal_queue.at(hi).timestamp - camera_queue.at(0).timestamp);
+
+          closest_gimbalmsg = (dt_lo <= dt_hi) ? lo : hi;
+        }
+        
+        // for ( size_t i = 0; )
+        _app->feed_measurement_camera(camera_queue.at(0), gimbal_queue.at(closest_gimbalmsg));
+        _app->feed_gimbal_rot(gimbal_queue.at(closest_gimbalmsg));                  // Feeds the oldest gimbal-measurement BUT still not same timestamp as camera?
         visualize();
-        PRINT_INFO(GREEN "timestamp cam: %.4f timestamp gimbal: %.4f dt: %.4f \n"  RESET, camera_queue.at(0).timestamp, gimbal_queue.at(0).timestamp, camera_queue.at(0).timestamp-gimbal_queue.at(0).timestamp);
+        
+        double now = _node->now().seconds();
+        PRINT_INFO(CYAN "gimbal-message age: %.4f \n" RESET, now - gimbal_queue.at(closest_gimbalmsg).timestamp);
+        PRINT_INFO(BOLDCYAN "camera-message age: %.4f \n" RESET, now - camera_queue.at(0).timestamp);
+        
+        PRINT_INFO(GREEN "timestamp cam: %.4f timestamp gimbal: %.4f dt: %.4f \n"  RESET, camera_queue.at(0).timestamp, gimbal_queue.at(closest_gimbalmsg).timestamp, camera_queue.at(0).timestamp-gimbal_queue.at(closest_gimbalmsg).timestamp);
 
-        std::stringstream ss;
-        ss << "\n" << gimbal_queue.at(0).R;
+        for (size_t i = 0; i < gimbal_queue.size(); ++i) {
+          PRINT_INFO(YELLOW "gimbal_queue timestamp at %zu: %.4f \n" RESET, i, gimbal_queue.at(i).timestamp);
+        }
 
-        PRINT_INFO(MAGENTA "GIMBAL ROT FED TO VIO: %s\n" RESET, ss.str().c_str());
+        for (size_t i = 0; i < camera_queue.size(); ++i) {
+          PRINT_INFO(BOLDYELLOW "camera_queue timestamp at %zu: %.4f \n" RESET, i, camera_queue.at(i).timestamp);
+        }
+        // std::stringstream ss;
+        // ss << "\n" << gimbal_queue.at(0).R;
+
+        // PRINT_INFO(MAGENTA "GIMBAL ROT FED TO VIO: %s\n" RESET, ss.str().c_str());
 
         camera_queue.pop_front();
-        gimbal_queue.pop_front();
-        gimbal_queue.clear();
+        // gimbal_queue.pop_front();
+        for (size_t i = 0; i <= closest_gimbalmsg; ++i) {
+          gimbal_queue.pop_front();
+        }
+
         auto rT0_2 = boost::posix_time::microsec_clock::local_time();
         double time_total = (rT0_2 - rT0_1).total_microseconds() * 1e-6;
         PRINT_INFO(BLUE "[TIME]: %.4f seconds total (%.1f hz, %.2f ms behind)\n" RESET, time_total, 1.0 / time_total, update_dt);
@@ -541,14 +579,15 @@ void ROS2Visualizer::callback_gimbal(const ov_interfaces::msg::GimbalStamped::Sh
   latest_gimbal_rot.R = R_local;
   }
 
-  std::stringstream ss;
-  ss << "\n" << latest_gimbal_rot.R;
+  // std::stringstream ss;
+  // ss << "\n" << latest_gimbal_rot.R;
 
-  PRINT_INFO(BOLDRED "GIMBAL ROT COMPUTED FROM GIMBAL POS: %s\n" RESET, ss.str().c_str());
-
+  // PRINT_INFO(BOLDRED "GIMBAL ROT COMPUTED FROM GIMBAL POS: %s\n" RESET, ss.str().c_str());
+  {
   std::lock_guard<std::mutex> lck(gimbal_queue_mtx);
   gimbal_queue.push_back(latest_gimbal_rot);
   std::sort(gimbal_queue.begin(), gimbal_queue.end());
+  }
 }
 
 void ROS2Visualizer::callback_monocular(const sensor_msgs::msg::Image::SharedPtr msg0, int cam_id0) {

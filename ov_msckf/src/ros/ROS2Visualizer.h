@@ -177,7 +177,7 @@ protected:
   
   std::deque<ov_core::GimbalData> gimbal_queue;
   std::mutex gimbal_queue_mtx;
-  
+  // std::lock_guard<std::mutex> lck(gimbal_queue_mtx);
   // For path viz
   std::vector<geometry_msgs::msg::PoseStamped> poses_imu;
 

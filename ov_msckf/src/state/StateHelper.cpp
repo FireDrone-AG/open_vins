@@ -597,10 +597,12 @@ void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<doub
     std::exit(EXIT_FAILURE);
   }
 
-  std::stringstream ss;
-  ss << "\n" << gimbal_message.R;
+  // std::stringstream ss;
+  // ss << "\n" << gimbal_message.R;
 
-  PRINT_INFO(YELLOW "GIMBAL ROT ADDED TO _clones_IMU: %s\n" RESET, ss.str().c_str());
+  // PRINT_INFO(YELLOW "GIMBAL ROT ADDED TO _clones_IMU: %s\n" RESET, ss.str().c_str());
+
+  PRINT_INFO(RED "gimbal message appended to _clones_IMU: %.4f \n" RESET, gimbal_message.timestamp);
 
   // Load these into our state
   Eigen::Matrix<double, 7, 1> gimbal_eigen;

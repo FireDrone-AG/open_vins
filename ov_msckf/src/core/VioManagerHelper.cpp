@@ -225,7 +225,8 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message,
 
     // Calibration for this cam_id
 
-    Eigen::Matrix3d R_ItoC = gimbal_message.R * state->_calib_IMUtoCAM.at(cam_id)->Rot();
+    // Eigen::Matrix3d R_ItoC = gimbal_message.R * state->_calib_IMUtoCAM.at(cam_id)->Rot();
+    Eigen::Matrix3d R_ItoC = state->_clones_IMU.at(active_tracks_time).second->Rot() * state->_calib_IMUtoCAM.at(cam_id)->Rot();
     Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(cam_id)->pos();
 
     // Convert current CAMERA position relative to global
@@ -330,6 +331,7 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message,
 
   std::shared_ptr<Vec> distortion = state->_cam_intrinsics.at(0);
   std::shared_ptr<PoseJPL> calibration = state->_calib_IMUtoCAM.at(0);
+  // Eigen::Matrix<double, 3, 3> R_ItoC = state->_clones_IMU.at(active_tracks_time).second->Rot() * calibration->Rot();
   Eigen::Matrix<double, 3, 3> R_ItoC = gimbal_message.R * calibration->Rot();
   Eigen::Matrix<double, 3, 1> p_IinC = calibration->pos();
 
