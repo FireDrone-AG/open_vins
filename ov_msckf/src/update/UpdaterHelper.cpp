@@ -321,7 +321,6 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
     
     std::shared_ptr<Vec> distortion = state->_cam_intrinsics.at(pair.first);
     std::shared_ptr<PoseJPL> calibration = state->_calib_IMUtoCAM.at(pair.first);
-    // Eigen::Matrix3d R_ItoC = gimbal_message_rot.R * calibration->Rot();
     Eigen::Matrix3d R_ItoC = calibration->Rot();
     Eigen::Vector3d p_IinC = calibration->pos();
 
@@ -332,9 +331,8 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
       //=========================================================================
 
       // Get current IMU clone state
+      const double clone_ts = feature.timestamps[pair.first].at(m);
       std::shared_ptr<PoseJPL> clone_Ii = state->_clones_IMU.at(feature.timestamps[pair.first].at(m)).first;
-      double clone_ts = feature.timestamps[pair.first].at(m);
-
       Eigen::Matrix3d R_gimbal = state->_clones_IMU.at(clone_ts).second->Rot();
       Eigen::Matrix3d R_GtoIi = clone_Ii->Rot();
       Eigen::Vector3d p_IiinG = clone_Ii->pos();

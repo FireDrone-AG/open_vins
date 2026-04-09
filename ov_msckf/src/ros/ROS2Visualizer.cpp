@@ -505,7 +505,7 @@ void ROS2Visualizer::callback_inertial(const sensor_msgs::msg::Imu::SharedPtr ms
           closest_gimbalmsg = 0;
         }
         else if (it == gimbal_queue.end()) {
-          closest_gimbalmsg = gimbal_queue.size() -1;
+          break;
         }
         else {
           const size_t hi = static_cast<size_t>(std::distance(gimbal_queue.begin(), it));

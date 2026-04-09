@@ -157,6 +157,7 @@ bool VioManager::try_to_initialize(const ov_core::CameraData &message, const ov_
                 [](const std::pair<double, ov_core::GimbalData> &a, const std::pair<double, ov_core::GimbalData> &b) {
                   return a.first < b.first;
                 });
+                
       // Now we have initialized we will propagate the state to the current timestep
       // In general this should be ok as long as the initialization didn't take too long to perform
       // Propagating over multiple seconds will become an issue if the initial biases are bad
