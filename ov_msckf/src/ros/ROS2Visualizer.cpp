@@ -543,7 +543,7 @@ void ROS2Visualizer::callback_inertial(const sensor_msgs::msg::Imu::SharedPtr ms
 
         camera_queue.pop_front();
         // gimbal_queue.pop_front();
-        for (size_t i = 0; i <= closest_gimbalmsg; ++i) {
+        for (size_t i = 0; i < closest_gimbalmsg; ++i) {
           gimbal_queue.pop_front();
         }
 

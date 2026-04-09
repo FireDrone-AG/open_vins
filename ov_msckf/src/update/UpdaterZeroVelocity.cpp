@@ -316,7 +316,6 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     R.block(0, 0, 3, 3) *= std::pow(1e-2, 2);
     R.block(3, 3, 3, 3) *= std::pow(1e-1, 2);
     R.block(6, 6, 3, 3) *= std::pow(1e-1, 2);
-
     // finally update and remove the old clone
     StateHelper::EKFUpdate(state, Hx_order, H, res, R);
     StateHelper::marginalize(state, state->_clones_IMU.at(time1_cam).first);
